@@ -16,8 +16,8 @@ class TwitterPoster(object):
         auth.set_access_token(self.access_token, self.access_token_secret)
         self.api = tweepy.API(auth)
 
-    def put_media_to_timeline(self, img_path): # TODO: status text
-        self.api.update_with_media(img_path, "Mój pierwszy obrazek")
+    def put_media_to_timeline(self, img_path, status):
+        self.api.update_with_media(img_path, status)
 
 
 def main():
@@ -27,14 +27,20 @@ def main():
 
     image_downloader = ImageDownloader(config)
 
-    djvu_file, content_id = image_downloader.get_random_image()
-    image_downloader.get_image_metadata(content_id)
+    djvu_file, file_index = image_downloader.get_random_image()
+    metadata = image_downloader.pretty_print_image_metadata(file_index)
 
     converter = Converter(config)
     error = converter.convert()
     if error:
         # Try to get the thumbnail.
-        image_downloader.get_thumbnail(content_id)
+        print(error)
+        image_downloader.get_thumbnail(file_index)
+
+    print(metadata)
+    #twitter_poster = TwitterPoster(config)
+    #twitter_poster.put_media_to_timeline(djvu_file, metadata)
+
 
 
 if __name__ == "__main__":

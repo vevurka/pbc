@@ -58,11 +58,8 @@ class ImageDownloader(object):
         root = ET.fromstring(response.text)
         image_metadata = {}
         for child in root[0]:
-            print(child.tag)
             if 'title' in child.tag:
                 image_metadata['title'] = child.text
-
-        print(image_metadata) # TODO: remove
         return image_metadata
 
     def get_thumbnail(self, content_id):
@@ -73,3 +70,8 @@ class ImageDownloader(object):
         print(vars(headers))
         #f = open('plik.jpg', 'wb')
         #f.write(filename)
+
+    def pretty_print_image_metadata(self, image_index):
+        image_metadata = self.get_image_metadata(image_index)
+        return image_metadata['title']
+
