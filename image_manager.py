@@ -24,6 +24,7 @@ class ImageDownloader(object):
             href = link.get('href')
             if "edition" in href:
                 image_list.append(href)
+
         return image_list
 
     @staticmethod

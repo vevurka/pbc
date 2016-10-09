@@ -3,6 +3,7 @@ import tweepy
 
 from converter import Converter
 from image_manager import ImageDownloader
+from proba3 import unittest
 
 
 class TwitterPoster(object):
@@ -27,7 +28,16 @@ def main():
 
     image_downloader = ImageDownloader(config)
 
-    media_file, file_index = image_downloader.get_random_image()
+
+
+    media_file, content_id, = image_downloader.get_random_image()
+
+    unittest.content_id = content_id
+    unittest.main(exit=False)
+
+    with open('content_id.txt', 'r') as f:
+        file_index = int(f.read())
+
     metadata = image_downloader.pretty_print_image_metadata(file_index)
 
     converter = Converter(config)
@@ -37,9 +47,10 @@ def main():
         print(error)
         media_file = image_downloader.get_thumbnail(file_index)
 
+
     print(metadata)
     twitter_poster = TwitterPoster(config)
-    twitter_poster.put_media_to_timeline(media_file, metadata)
+    #twitter_poster.put_media_to_timeline(media_file, metadata)
 
 
 if __name__ == "__main__":
