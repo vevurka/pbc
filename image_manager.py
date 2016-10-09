@@ -52,9 +52,7 @@ class ImageDownloader(object):
 
     def get_image_metadata(self, image_index):
         url = self.metadata_url_part + str(image_index)
-        print(url)
         response = requests.get(url)
-        print(response.text)
         root = ET.fromstring(response.text)
         image_metadata = {}
         for child in root[0]:
@@ -66,12 +64,9 @@ class ImageDownloader(object):
         print("Getting the thumbnail...")
         url = "%s%s" % (self.thumbnail_url, content_id)
         print(url)
-        filename, headers = urllib.request.urlretrieve(self.thumbnail_url, self.jpg_path)
-        print(vars(headers))
-        #f = open('plik.jpg', 'wb')
-        #f.write(filename)
+        urllib.request.urlretrieve(url, self.jpg_path)
+        return self.jpg_path
 
     def pretty_print_image_metadata(self, image_index):
         image_metadata = self.get_image_metadata(image_index)
-        return image_metadata['title']
-
+        return image_metadata['title'][:140]
