@@ -11,7 +11,9 @@ class RedirectTest(unittest.TestCase):
 
     """
     All this dirty selenium hacking is for the sole purpose of
-    getting the 
+    getting the pbc library api working. Since data was exposed only
+    through ajax requests, it was necessary to mock the user behavior.
+    SHAME SHAME SHAME :D.
     """
     image_index = "0"
 
