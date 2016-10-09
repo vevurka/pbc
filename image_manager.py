@@ -69,7 +69,4 @@ class ImageDownloader(object):
         print("Getting the thumbnail...")
         url = "%s%s" % (self.thumbnail_url, content_id)
         print(url)
-        filename, headers = urllib.request.urlretrieve(self.thumbnail_url, self.jpg_path)
-        print(vars(headers))
-        #f = open('plik.jpg', 'wb')
-        #f.write(filename)
+        urllib.request.urlretrieve(url, self.jpg_path)
