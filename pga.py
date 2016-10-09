@@ -1,19 +1,20 @@
-
-import os
 import random
 
 import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 
-from converter import Converter
+import configparser
+import tweepy
 
-IMG_DIR = "images/"
+from converter import Converter
 
 
 class ImageDownloader(object):
-    def __init__(self):
-        self.url = "http://pbc.gda.pl/dlibra/publication?id=29939"  # TODO: add to config
+
+    def __init__(self, config):
+        self.url = config['default']['url']
+        self.image_path = config['image']['image_path']
 
     def get_images_list(self):
         response = requests.get(self.url)
@@ -46,22 +47,43 @@ class ImageDownloader(object):
         image_list = self.get_images_list()
         image_index = random.randrange(0, len(image_list))
         url = self.prepare_download_url(image_list[image_index])
-        print(url)
-
         print("Downloading from url", url)
-        urllib.request.urlretrieve(url, tempfile)  # TODO: add to config
-        return tempfile
+        urllib.request.urlretrieve(url, self.image_path)
+        return self.image_path
+
+    def get_image_metadata(self, image_index):
+        # http://pbc.gda.pl/dlibra/docmetadata?id=30530&from=publication
+        pass
+
+
+class TwitterPoster(object):
+
+    def __init__(self, config):
+        self.consumer_key = config['twitter']['consumer_key']
+        self.consumer_secret = config['twitter']['consumer_secret']
+        self.access_token = config['twitter']['access_token']
+        self.access_token_secret = config['twitter']['access_token_secret']
+        auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
+        auth.set_access_token(self.access_token, self.access_token_secret)
+        self.api = tweepy.API(auth)
+
+    def put_media_to_timeline(self, img_path): # TODO: status text
+        self.api.update_with_media(img_path, "Mój pierwszy obrazek")
 
 
 def main():
-    jpg_path = os.path.join(IMG_DIR, "new_image.jpg")
-    image_downloader = ImageDownloader()
+
+    config = configparser.ConfigParser()
+    config.read('config.conf')
+
+    image_downloader = ImageDownloader(config)
     djvu_file = image_downloader.get_random_image()
 
-    converter = Converter(djvu_file, jpg_path)
+    converter = Converter(config)
     error = converter.convert()
     if error:
         pass
+
 
 if __name__ == "__main__":
     main()
