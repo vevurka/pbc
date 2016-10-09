@@ -5,10 +5,29 @@ import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 
+import configparser
+import tweepy
+
+
+class TwitterPoster(object):
+
+    def __init__(self, config):
+        self.consumer_key = config['twitter']['consumer_key']
+        self.consumer_secret = config['twitter']['consumer_secret']
+        self.access_token = config['twitter']['access_token']
+        self.access_token_secret = config['twitter']['access_token_secret']
+        auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
+        auth.set_access_token(self.access_token, self.access_token_secret)
+        self.api = tweepy.API(auth)
+
+    def put_media_to_timeline(self, img_path): # TODO: status text
+        self.api.update_with_media(img_path, "Mój pierwszy obrazek")
+
 
 class ImageDownloader(object):
-    def __init__(self):
-        self.url = "http://pbc.gda.pl/dlibra/publication?id=29939"  # TODO: add to config
+    def __init__(self, config):
+        self.url = config['default']['url']
+        self.image_path = config['image']['image_path']
 
     def get_images_list(self):
         response = requests.get(self.url)
@@ -42,13 +61,22 @@ class ImageDownloader(object):
         url = self.prepare_download_url(image_list[image_index])
 
         print("Downloading from url", url)
-        urllib.request.urlretrieve(url, '~/PANkreator/temp.djvu')  # TODO: add to config
+        urllib.request.urlretrieve(url, self.image_path)
+        return self.image_path
 
+    def get_image_metadata(self, image_index):
+        # http://pbc.gda.pl/dlibra/docmetadata?id=30530&from=publication
+        pass
 
 def main():
-    image_downloader = ImageDownloader()
-    image_downloader.get_random_image()
+    config = configparser.ConfigParser()
+    config.read('config.conf')
+    image_downloader = ImageDownloader(config)
+    image = image_downloader.get_random_image()
+    print(image)
 
+    #twitter_poster = TwitterPoster(config)
+    #twitter_poster.put_media_to_timeline(image)
 
 if __name__ == "__main__":
     main()
