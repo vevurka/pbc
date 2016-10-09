@@ -67,6 +67,6 @@ class ImageDownloader(object):
         urllib.request.urlretrieve(url, self.jpg_path)
         return self.jpg_path
 
-    def pretty_print_image_metadata(self, image_index):
-        image_metadata = self.get_image_metadata(image_index)
+    def pretty_print_image_metadata(self, content_id):
+        image_metadata = self.get_image_metadata(content_id)
         return image_metadata['title'][:140]
