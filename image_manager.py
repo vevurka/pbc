@@ -4,11 +4,14 @@ import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 
+
 class ImageDownloader(object):
+
     def __init__(self, config):
         self.url = config['default']['url']
         self.image_path = config['image']['image_path']
         self.metadata_url_part = config['default']['metadata_url']
+        self.thumbnail_url = config['default']['thumbnail_url']
 
     def get_images_list(self):
         response = requests.get(self.url)
@@ -50,3 +53,7 @@ class ImageDownloader(object):
         print(url)
         response = requests.get(url)
         print(response.text)
+
+    def get_thumbnail(self):
+        url = self.thumbnail_url
+        urllib.request.urlretrieve(self.thumbnail_url, self.image_path)
