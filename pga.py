@@ -1,9 +1,14 @@
+
+import os
 import random
 
 import urllib.parse
-
 import requests
 from bs4 import BeautifulSoup
+
+from converter import Converter
+
+IMG_DIR = "images/"
 
 
 class ImageDownloader(object):
@@ -37,18 +42,22 @@ class ImageDownloader(object):
         return urllib.parse.urlunparse(new_url)
 
     def get_random_image(self):
+        tempfile = 'temp.djvu'
         image_list = self.get_images_list()
         image_index = random.randrange(0, len(image_list))
         url = self.prepare_download_url(image_list[image_index])
 
         print("Downloading from url", url)
-        urllib.request.urlretrieve(url, '~/PANkreator/temp.djvu')  # TODO: add to config
+        urllib.request.urlretrieve(url, tempfile)  # TODO: add to config
+        return tempfile
 
 
 def main():
+    jpg_path = os.path.join(IMG_DIR, "new_image.jpg")
     image_downloader = ImageDownloader()
-    image_downloader.get_random_image()
-
+    djvu_file = image_downloader.get_random_image()
+    converter = Converter(djvu_file, jpg_path)
+    converter.convert()
 
 if __name__ == "__main__":
     main()
