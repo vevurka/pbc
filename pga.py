@@ -42,10 +42,11 @@ class ImageDownloader(object):
         return urllib.parse.urlunparse(new_url)
 
     def get_random_image(self):
-        tempfile = 'temp.djvu'
+        tempfile = 'plik.djvu'
         image_list = self.get_images_list()
         image_index = random.randrange(0, len(image_list))
         url = self.prepare_download_url(image_list[image_index])
+        print(url)
 
         print("Downloading from url", url)
         urllib.request.urlretrieve(url, tempfile)  # TODO: add to config
@@ -56,8 +57,11 @@ def main():
     jpg_path = os.path.join(IMG_DIR, "new_image.jpg")
     image_downloader = ImageDownloader()
     djvu_file = image_downloader.get_random_image()
+
     converter = Converter(djvu_file, jpg_path)
-    converter.convert()
+    error = converter.convert()
+    if error:
+        pass
 
 if __name__ == "__main__":
     main()
