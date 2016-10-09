@@ -49,7 +49,7 @@ class ImageDownloader(object):
 
         print("Downloading from url", url)
         urllib.request.urlretrieve(url, self.image_path)
-        return self.image_path, content_id
+        return self.image_path, content_id, image_index
 
     def get_image_metadata(self, image_index):
         url = self.metadata_url_part + str(image_index)

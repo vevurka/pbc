@@ -18,6 +18,7 @@ class RedirectTest(unittest.TestCase):
     All this dirty selenium hacking is for the sole purpose of
     getting the 
     """
+    content_id = "0"
 
     def setUp(self):
         self.driver = webdriver.PhantomJS('/home/sir/Aktywatory/PANkreator_src/phantomjs')  #webdriver.Firefox()
@@ -27,11 +28,12 @@ class RedirectTest(unittest.TestCase):
         self.accept_next_alert = True
 
     def test_proba3(self):
-        print("sdvsdvsdvsdv: ", self.content_id)
-
         driver = self.driver
         driver.get(self.base_url + "/dlibra/publication?id=29939")
-        driver.find_element_by_xpath("(//img[contains(@src,'http://pbc.gda.pl/style/common/img/icons/desc.gif')])[%s]" % self.content_id+4).click()
+        
+        number = "%s" % (int(self.content_id) + 4)
+        
+        driver.find_element_by_xpath("(//img[contains(@src,'http://pbc.gda.pl/style/common/img/icons/desc.gif')])[%s]" % number).click()
         time.sleep(1)
         print(driver.current_url)
         content_id = parse_qs(urlparse(driver.current_url).query)['id'][0]
@@ -42,5 +44,5 @@ class RedirectTest(unittest.TestCase):
         self.driver.quit()
         self.assertEqual([], self.verificationErrors)
 
-if __name__ == '__main__':
-    unittest.main()
+#if __name__ == '__main__':
+#    unittest.main()

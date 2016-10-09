@@ -3,7 +3,7 @@ import tweepy
 
 from converter import Converter
 from image_manager import ImageDownloader
-from proba3 import unittest
+from proba3 import unittest, RedirectTest
 
 
 class TwitterPoster(object):
@@ -28,12 +28,10 @@ def main():
 
     image_downloader = ImageDownloader(config)
 
+    media_file, content_id, image_index = image_downloader.get_random_image()
 
-
-    media_file, content_id, = image_downloader.get_random_image()
-
-    unittest.content_id = content_id
-    unittest.main(exit=False)
+    RedirectTest.content_id = image_index
+    unittest.main(exit=False, module='proba3')
 
     with open('content_id.txt', 'r') as f:
         file_index = int(f.read())
