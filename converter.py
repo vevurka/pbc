@@ -5,10 +5,11 @@ import subprocess
 
 class Converter(object):
 
-    def __init__(self, djvu_file, jpg_file):
-        self.djvu_bin = "/usr/bin/ddjvu"
-        self.djvu_file = djvu_file
-        self.jpg_file = jpg_file
+    def __init__(self, config):
+        self.djvu_bin = config['converter']['djvu_bin']
+        self.djvu_file = config['image']['image_path']
+        self.jpg_file = config['image']['jpg_path']
+        self.pnm_tmpfile = config['image']['pnm_tmpfile']
         self.error = None
 
     def convert(self):
@@ -17,16 +18,15 @@ class Converter(object):
         return self.error
 
     def convert_to_pnm(self):
-        pnm_tmpfile = "/home/sir/Aktywatory/PANkreator_src/pbc/temp.pnm"
         try:
-            p = subprocess.check_call([self.djvu_bin, "--format=pnm", self.djvu_file, pnm_tmpfile],
+            p = subprocess.check_call([self.djvu_bin, "--format=pnm", self.djvu_file, self.pnm_tmpfile],
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE,)
             output, error = p.communicate()
             print(output, error)
         except Exception as e:
             self.error = "Nie udało się skonwertować do pnm!"
-        return pnm_tmpfile
+        return self.pnm_tmpfile
 
     def convert_to_jpg(self, pnm):
         try:
