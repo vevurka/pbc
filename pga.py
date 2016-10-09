@@ -25,16 +25,16 @@ def main():
     config = configparser.ConfigParser()
     config.read('config.conf')
 
-    image_downloader.get_image_metadata(index)
-
     image_downloader = ImageDownloader(config)
-    djvu_file = image_downloader.get_random_image()
+
+    djvu_file, content_id = image_downloader.get_random_image()
+    image_downloader.get_image_metadata(content_id)
 
     converter = Converter(config)
     error = converter.convert()
     if error:
         # Try to get the thumbnail.
-        image_downloader.get_thumbnail()
+        image_downloader.get_thumbnail(content_id)
 
 
 if __name__ == "__main__":

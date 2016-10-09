@@ -3,6 +3,7 @@ import random
 import urllib.parse
 import requests
 from bs4 import BeautifulSoup
+import xml.etree.ElementTree as ET
 
 
 class ImageDownloader(object):
@@ -12,6 +13,7 @@ class ImageDownloader(object):
         self.image_path = config['image']['image_path']
         self.metadata_url_part = config['default']['metadata_url']
         self.thumbnail_url = config['default']['thumbnail_url']
+        self.jpg_path = config['image']['jpg_path']
 
     def get_images_list(self):
         response = requests.get(self.url)
@@ -37,23 +39,37 @@ class ImageDownloader(object):
                                            params='',
                                            query='',
                                            fragment='')
-        return urllib.parse.urlunparse(new_url)
+        return urllib.parse.urlunparse(new_url), content_id
 
     def get_random_image(self):
         image_list = self.get_images_list()
         image_index = random.randrange(0, len(image_list))
-        url = self.prepare_download_url(image_list[image_index])
+        url, content_id = self.prepare_download_url(image_list[image_index])
 
         print("Downloading from url", url)
         urllib.request.urlretrieve(url, self.image_path)
-        return (self.image_path, image_index)
+        return self.image_path, content_id
 
     def get_image_metadata(self, image_index):
         url = self.metadata_url_part + str(image_index)
         print(url)
         response = requests.get(url)
         print(response.text)
+        root = ET.fromstring(response.text)
+        image_metadata = {}
+        for child in root[0]:
+            print(child.tag)
+            if 'title' in child.tag:
+                image_metadata['title'] = child.text
 
-    def get_thumbnail(self):
-        url = self.thumbnail_url
-        urllib.request.urlretrieve(self.thumbnail_url, self.image_path)
+        print(image_metadata) # TODO: remove
+        return image_metadata
+
+    def get_thumbnail(self, content_id):
+        print("Getting the thumbnail...")
+        url = "%s%s" % (self.thumbnail_url, content_id)
+        print(url)
+        filename, headers = urllib.request.urlretrieve(self.thumbnail_url, self.jpg_path)
+        print(vars(headers))
+        #f = open('plik.jpg', 'wb')
+        #f.write(filename)
