@@ -3,7 +3,7 @@ import tweepy
 
 from converter import Converter
 from image_manager import ImageDownloader
-from proba3 import unittest, RedirectTest
+from redirect import unittest, RedirectTest
 
 
 class TwitterPoster(object):
@@ -28,10 +28,10 @@ def main():
 
     image_downloader = ImageDownloader(config)
 
-    media_file, content_id, image_index = image_downloader.get_random_image()
+    media_file, image_index = image_downloader.get_random_image()
 
-    RedirectTest.content_id = image_index
-    unittest.main(exit=False, module='proba3')
+    RedirectTest.image_index = image_index
+    unittest.main(exit=False, module='redirect')
 
     with open('content_id.txt', 'r') as f:
         file_index = int(f.read())
@@ -45,10 +45,8 @@ def main():
         print(error)
         media_file = image_downloader.get_thumbnail(file_index)
 
-
-    print(metadata)
     twitter_poster = TwitterPoster(config)
-    #twitter_poster.put_media_to_timeline(media_file, metadata)
+    twitter_poster.put_media_to_timeline(media_file, metadata + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + file_index)
 
 
 if __name__ == "__main__":

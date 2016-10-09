@@ -40,16 +40,16 @@ class ImageDownloader(object):
                                            params='',
                                            query='',
                                            fragment='')
-        return urllib.parse.urlunparse(new_url), content_id
+        return urllib.parse.urlunparse(new_url)
 
     def get_random_image(self):
         image_list = self.get_images_list()
         image_index = random.randrange(0, len(image_list))
-        url, content_id = self.prepare_download_url(image_list[image_index])
+        url = self.prepare_download_url(image_list[image_index])
 
         print("Downloading from url", url)
         urllib.request.urlretrieve(url, self.image_path)
-        return self.image_path, content_id, image_index
+        return self.image_path, image_index
 
     def get_image_metadata(self, image_index):
         url = self.metadata_url_part + str(image_index)
@@ -70,4 +70,4 @@ class ImageDownloader(object):
 
     def pretty_print_image_metadata(self, content_id):
         image_metadata = self.get_image_metadata(content_id)
-        return image_metadata['title'][:140]
+        return image_metadata['title'][:110]
