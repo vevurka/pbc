@@ -27,9 +27,9 @@ class RedirectTest(unittest.TestCase):
     def test_proba3(self):
         driver = self.driver
         driver.get(self.base_url + "/dlibra/publication?id=29939")
-        
+
         number = "%s" % (int(self.image_index) + 4)
-        
+
         driver.find_element_by_xpath("(//img[contains(@src,'http://pbc.gda.pl/style/common/img/icons/desc.gif')])[%s]" % number).click()
         time.sleep(1)
         print(driver.current_url)

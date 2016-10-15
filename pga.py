@@ -45,8 +45,8 @@ def main():
         print(error)
         media_file = image_downloader.get_thumbnail(file_index)
 
-    twitter_poster = TwitterPoster(config)
-    twitter_poster.put_media_to_timeline(media_file, metadata + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + str(file_index))
+    #twitter_poster = TwitterPoster(config)
+    #twitter_poster.put_media_to_timeline(media_file, metadata + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + str(file_index))
 
 
 if __name__ == "__main__":
