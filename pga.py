@@ -1,8 +1,9 @@
 import configparser
 import tweepy
 
+from oai_api import LibraryCrawler
 from converter import Converter
-from image_manager import ImageDownloader
+from image_manager import Downloader
 from redirect import unittest, RedirectTest
 
 
@@ -22,28 +23,25 @@ class TwitterPoster(object):
 
 
 def main():
-
     config = configparser.ConfigParser()
     config.read('config.conf')
 
-    image_downloader = ImageDownloader(config)
+    api = LibraryCrawler(config)
+    record = api.run()
 
-    media_file, image_index = image_downloader.get_random_image()
+    content_id = 24617
 
-    RedirectTest.image_index = image_index
-    unittest.main(exit=False, module='redirect')
+    if record:
+        downloader = Downloader(content_id, config)
+        downloader.get_file()
+        downloader.unzip()
 
-    with open('content_id.txt', 'r') as f:
-        file_index = int(f.read())
-
-    metadata = image_downloader.pretty_print_image_metadata(file_index)
-
-    converter = Converter(config)
-    error = converter.convert()
-    if error:
-        # Try to get the thumbnail.
-        print(error)
-        media_file = image_downloader.get_thumbnail(file_index)
+        converter = Converter(config)
+        error = converter.convert()
+        if error:
+            # Try to get the thumbnail.
+            print(error)
+            media_file = downloader.get_thumbnail(file_index)
 
     #twitter_poster = TwitterPoster(config)
     #twitter_poster.put_media_to_timeline(media_file, metadata + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + str(file_index))

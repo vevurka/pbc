@@ -7,9 +7,9 @@ class Converter(object):
 
     def __init__(self, config):
         self.djvu_bin = config['converter']['djvu_bin']
-        self.djvu_file = config['image']['image_path']
-        self.jpg_file = config['image']['jpg_path']
-        self.pnm_tmpfile = config['image']['pnm_tmpfile']
+        self.djvu_file = config['files']['image_path']
+        self.jpg_file = config['files']['jpg_path']
+        self.pnm_tmpfile = config['files']['pnm_tmpfile']
         self.error = None
 
     def convert(self):

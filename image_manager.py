@@ -1,19 +1,67 @@
+
+from http.cookiejar import CookieJar
+import urllib.request
+import urllib.parse
+import zipfile
+
+
+
 import random
 
-import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 import xml.etree.ElementTree as ET
 
 
+class Downloader(object):
+
+    """
+    Authorize into the library, save the zip file and extract it.
+    """
+
+    def __init__(self, content_id, config):
+        self.content_id = content_id
+        self.config = config
+
+    def unzip(self):
+        with zipfile.ZipFile(self.config['files']['zipfile_name'], 'r') as zip_file:
+            zip_file.extractall(self.config['files']['zipdir'])
+
+    def get_file(self):
+        jar = CookieJar()
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        opener.addheaders = [('User-agent', 'Lib')]
+        urllib.request.install_opener(opener)
+
+        payload = {
+            'login': self.config['default']['pbc_login'],
+            'password': self.config['default']['pbc_password']
+        }
+
+        data = urllib.parse.urlencode(payload)
+        d = data.encode('utf-8')
+        request = urllib.request.Request(self.config['default']['auth_url'], d)
+        response = urllib.request.urlopen(request)
+        response2 = urllib.request.urlretrieve(self.config['default']['content_url'] + str(self.content_id) + '/zip/',
+                                               self.config['files']['zipfile_name'])
+        self.unzip()
+
+    def get_thumbnail(self):
+        print("Getting the thumbnail...")
+        url = "%s%s" % (self.config['default']['thumbnail_url'], self.content_id)
+        urllib.request.urlretrieve(url, self.config['files']['jpg_path'])
+        return self.config['files']['jpg_path']
+
+
+"""
 class ImageDownloader(object):
 
     def __init__(self, config):
         self.url = config['default']['url']
-        self.image_path = config['image']['image_path']
+        self.image_path = config['files']['image_path']
         self.metadata_url_part = config['default']['metadata_url']
         self.thumbnail_url = config['default']['thumbnail_url']
-        self.jpg_path = config['image']['jpg_path']
+        self.jpg_path = config['files']['jpg_path']
 
     def get_images_list(self):
         response = requests.get(self.url)
@@ -71,3 +119,4 @@ class ImageDownloader(object):
     def pretty_print_image_metadata(self, content_id):
         image_metadata = self.get_image_metadata(content_id)
         return image_metadata['title'][:110]
+"""
