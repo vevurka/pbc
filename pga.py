@@ -1,25 +1,13 @@
+# -*- coding: utf-8 -*-
+
+
 import configparser
-import tweepy
 
 from oai_api import LibraryCrawler
+from twitter_api import TwitterPoster
 from converter import Converter
 from image_manager import Downloader
 from redirect import unittest, RedirectTest
-
-
-class TwitterPoster(object):
-
-    def __init__(self, config):
-        self.consumer_key = config['twitter']['consumer_key']
-        self.consumer_secret = config['twitter']['consumer_secret']
-        self.access_token = config['twitter']['access_token']
-        self.access_token_secret = config['twitter']['access_token_secret']
-        auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
-        auth.set_access_token(self.access_token, self.access_token_secret)
-        self.api = tweepy.API(auth)
-
-    def put_media_to_timeline(self, img_path, status):
-        self.api.update_with_media(img_path, status)
 
 
 def main():
@@ -28,23 +16,23 @@ def main():
 
     api = LibraryCrawler(config)
     record = api.run()
-
-    content_id = 24617
+    content_id = record.metadata['identifier'][1].lstrip('oai:pbc.gda.pl:')
 
     if record:
         downloader = Downloader(content_id, config)
         downloader.get_file()
-        downloader.unzip()
+        downloader.unzip
+        filename = downloader.get_filename()
 
-        converter = Converter(config)
+        converter = Converter(config, filename)
         error = converter.convert()
         if error:
             # Try to get the thumbnail.
-            print(error)
-            media_file = downloader.get_thumbnail(file_index)
+            media_file = downloader.get_thumbnail()
 
-    #twitter_poster = TwitterPoster(config)
-    #twitter_poster.put_media_to_timeline(media_file, metadata + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + str(file_index))
+        #twitter_poster = TwitterPoster(config)
+        #twitter_poster.put_media_to_timeline(media_file, metadata + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + str(file_index))
+        downloader.cleanup()
 
 
 if __name__ == "__main__":
