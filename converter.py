@@ -24,27 +24,40 @@ class Converter(object):
 
     def convert(self):
         pnm = self.convert_to_pnm()
-        self.convert_to_jpg(pnm)
-        return self.error
+        jpg = self.convert_to_jpg(pnm)
+
+        if not self.error:
+            return jpg
+        return None
 
     def convert_to_pnm(self):
-        print('Konwertuję do pnm...')
-        print(self.djvu_file, self.pnm_tmpfile)
+        print('Converting to pnm...')
         try:
             subprocess.check_call([self.djvu_bin, "--format=pnm", self.djvu_file, self.pnm_tmpfile],
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE,)
         except Exception as e:
             print(e)
-            self.error = "Nie udało się skonwertować do pnm!"
+            self.error = "Failed to convert file to pnm!"
             print(self.error)
         return self.pnm_tmpfile
 
     def convert_to_jpg(self, pnm):
-        print("Konwertuję do jpg...")
+        print("Converting to jpg...")
         try:
             subprocess.check_call(["convert", pnm, self.jpg_file],
                                   stdout=subprocess.PIPE)
         except Exception as e:
-            self.error = "Nie udało się skowertować do jpg!"
+            self.error = "Failed to convert file to jpg!"
             print(self.error)
+            return None
+
+        # Since we don't really know how many files convert will produce,
+        # we need to check it.
+        zero_file = os.path.join(self.config['files']['imagesdir'], 'new_image-0.jpg')
+        if os.path.isfile(self.jpg_file):
+            return self.jpg_file
+        elif os.path.isfile(zero_file):
+            return zero_file
+        else:
+            return None

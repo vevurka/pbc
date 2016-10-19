@@ -24,7 +24,7 @@ class LibraryCrawler(object):
         self.query_dict = {
             'type': ['stary druk', 'fotografia', 'album', 'druk ulotny',
                      'dokument ikonograficzny', 'dokument ikonograficzny' ],
-            'format': ['image/x.djvu', 'image/jpeg', ]
+            #'format': ['image/x.djvu', 'image/jpeg', ]
         }
 
     def get_token(self):
@@ -47,7 +47,7 @@ class LibraryCrawler(object):
                 try:
                     attribute = record.metadata[key]
                     if attribute[0] in values:
-                        print('Found!')
+                        print('Found something interesting!')
                         print(record.metadata)
                         found = True
                         return record

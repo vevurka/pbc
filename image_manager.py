@@ -53,10 +53,22 @@ class Downloader(object):
         data = urllib.parse.urlencode(payload)
         d = data.encode('utf-8')
         request = urllib.request.Request(self.config['default']['auth_url'], d)
-        response = urllib.request.urlopen(request, timeout=60)
-        response2 = urllib.request.urlretrieve(self.config['default']['content_url'] + self.content_id + '/zip/',
-                                               self.config['files']['zipfile'])
-        self.unzip()
+        urllib.request.urlopen(request, timeout=60)
+        response = urllib.request.urlopen(self.config['default']['content_url'] + self.content_id + '/zip/')
+
+        data = b''
+        file_response = response.read()
+        while file_response:
+            data += file_response
+            file_response = response.read()
+            if len(data) >= 500**1024:
+                del data
+                raise Exception("File is too big!")
+
+        with open(self.config['files']['zipfile'], 'wb') as zipfile:
+            zipfile.write(data)
+
+            self.unzip()
 
     def get_thumbnail(self):
         """
@@ -68,14 +80,15 @@ class Downloader(object):
         urllib.request.urlretrieve(url, self.config['files']['jpg_path'])
         return self.config['files']['jpg_path']
 
-    def cleanup(self):
 
-        def del_files(directory):
-            [os.remove(os.path.join(directory, f)) for f in os.listdir(directory)]
+def cleanup(config):
 
-        try:
-            os.remove(self.config['files']['zipfile'])
-            del_files(self.config['files']['zipdir'])
-            del_files(self.config['files']['imagesdir'])
-        except Exception as e:
-            print(e)
+    def del_files(directory):
+        [os.remove(os.path.join(directory, f)) for f in os.listdir(directory)]
+
+    try:
+        os.remove(config['files']['zipfile'])
+        del_files(config['files']['zipdir'])
+        del_files(config['files']['imagesdir'])
+    except Exception as e:
+        print(e)
