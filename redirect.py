@@ -16,7 +16,7 @@ class RedirectTest(unittest.TestCase):
     image_index = "0"
 
     def setUp(self):
-        self.driver = webdriver.PhantomJS('/home/sir/Aktywatory/PANkreator_src/phantomjs')  #webdriver.Firefox()
+        self.driver = webdriver.PhantomJS('/home/muzzaica/PANkreator/phantomjs')  #webdriver.Firefox()
         self.driver.implicitly_wait(30)
         self.base_url = "http://pbc.gda.pl/"
         self.verificationErrors = []
