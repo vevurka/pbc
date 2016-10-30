@@ -1,0 +1,5 @@
+---
+- hosts: panserver
+  tasks:
+   - name: git
+     git: repo=ssh://git@github.com/vevurka/pbc.git dest=~/PANkreator/pbc

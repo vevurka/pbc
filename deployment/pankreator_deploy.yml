@@ -1,0 +1,24 @@
+---
+  - hosts: local
+    tasks: 
+     - name: dirs
+       file: path=~/PANkreator/ state=directory mode=0755 recurse=yes
+     - name: fetch repo
+       git: repo=ssh://git@github.com/vevurka/pbc.git dest=~/PANkreator/pbc
+     - name: packages
+       apt: name={{item}} state=installed
+       with_items:
+         - djvulibre-bin
+         - libxml2-dev
+         - libxslt-dev
+         - python-dev
+         - lib32z1-dev
+       sudo: yes
+     - name: venv
+       command: virtualenv -p python3 ~/PANkreator/panvenv/
+     - name: pipinstall
+       pip: requirements=~/PANkreator/pbc/requirements.txt virtualenv=~/PANkreator/panvenv 
+     - name: exec chmod +x
+       file: path=~/PANkreator/pbc/deployment/run_PANkreator.sh mode=0755 
+     - name: cron
+       cron: name="Pankreator cron" minute="30" hour="12" job="sh ~/PANkreator/pbc/deployment/run_PANkreator.sh >> pankreator.log 2>&1"
