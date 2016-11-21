@@ -20,7 +20,7 @@ def main(config, tries):
         if record:
             downloader = Downloader(content_id, config)
             downloader.get_file()
-            downloader.unzip
+            downloader.unzip()
             filename = downloader.get_filename()
 
             converter = Converter(config, filename)
@@ -32,8 +32,8 @@ def main(config, tries):
             print(media_file)
             twitter_poster = TwitterPoster(config)
             title = record.metadata['title'][0]
-            twitter_poster.put_media_to_timeline(media_file, title[:110] + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + content_id)
-            cleanup(config)
+            #twitter_poster.put_media_to_timeline(media_file, title[:110] + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + content_id)
+            #cleanup(config)
 
     except Exception as e:
         print("Caught exception: %s" % e)
