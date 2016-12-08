@@ -23,8 +23,8 @@ def main(config, tries):
             downloader.unzip()
             filename = downloader.get_filename()
 
-            converter = Converter(config, filename)
-            media_file = converter.convert()
+            #converter = Converter(config, filename)
+            #media_file = converter.convert()
             if not media_file:
                 # Try to get the thumbnail.
                 media_file = downloader.get_thumbnail()
@@ -38,7 +38,7 @@ def main(config, tries):
     except Exception as e:
         print("Caught exception: %s" % e)
         print("Trying again...")
-        cleanup(config)
+        #cleanup(config)
         tries -= 1
         if tries > 0:
             main(config, tries)

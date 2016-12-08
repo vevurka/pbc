@@ -13,7 +13,7 @@ from sklearn.svm import SVC
 from sklearn.cross_validation import train_test_split
 from sklearn.cross_validation import KFold, cross_val_score
 
-from prepare_image import load_images, prepare_image
+from .prepare_image import load_images, prepare_image
 
 matplotlib.rc('font', family='DejaVu Sans')
 
@@ -30,9 +30,9 @@ class Categorizer(object):
 
     def __init__(self, pre_trained=True):
         if pre_trained:
-            self.classifier = joblib.load('./data/trained_classifier.pkl')
+            self.classifier = joblib.load('./image_detector/data/trained_classifier.pkl')
         else:
-            self.classifier = self.load_dataset('./data/images/*.jpg')
+            self.classifier = self.load_dataset('./image_detector/data/images/*.jpg')
 
     def train_classifier(self, images, results):
         """
@@ -90,28 +90,28 @@ class Categorizer(object):
         print(prediction, prediction_percent)
 
         return {
+            'path': image_path,
             'text': round(prediction_percent[0][0], 3) * 100,
             'image': round(prediction_percent[0][1], 3) * 100,
             'blank': round(prediction_percent[0][2], 3) * 100,
         }
 
-    def categorize(self):
+    def categorize(self, image_path):
 
-        path = '.'
-        for image_path in glob.glob(path):
-            result = self.categorize_image(self.classifier, image_path)
+        results = self.categorize_image(self.classifier, image_path)
+        if results['image'] >= 5:
             image = io.imread(image_path)
             fig, ax = plt.subplots(1)
             ax.axis('off')
             ax.imshow(image)
-
+    
             text = "Wydaje mi się, że to jest... \n Tekst: %s%%,\n Obraz: %s%%,\n Pusta strona: %s%%" % \
-                   (result['text'], result['image'], result['blank'])
-
+                   (results['text'], results['image'], results['blank'])
+    
             w, h = image.shape[1], image.shape[0]
-
+    
             ax.text(0, h*0.2, text, bbox={'facecolor':'green', 'alpha':0.5, 'pad':10})
-
+    
             rect = patches.Rectangle(
                 (w*0.1, h*0.1),
                 w*0.8, h*0.8,
