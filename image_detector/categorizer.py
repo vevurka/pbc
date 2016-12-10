@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import glob
 import json
 import numpy
 from skimage import io
@@ -19,6 +18,10 @@ matplotlib.rc('font', family='DejaVu Sans')
 
 
 class Categorizer(object):
+
+    TEXT = 0
+    IMAGE = 1
+    BLANK_PAGE = 2
 
     """
     This class implements machine learning algorithm for images classification.
@@ -65,13 +68,14 @@ class Categorizer(object):
         images = load_images(learn_path)
         images = numpy.array(images, dtype=numpy.uint8)
 
-        with open('./data/learned.json', 'r') as f:
+        with open('./image_detector/data/new_learned.json', 'r') as f:
             results = json.load(f)
             classifier = self.train_classifier(images, results)
+            joblib.dump(classifier, './image_detector/data/trained_classifier.pkl', compress=9)
 
         return classifier
 
-    def categorize_image(self, classifier, image_path):
+    def categorize_image(self, image_path):
         """
         Get one image and try to guess what it may be.
         - text
@@ -82,43 +86,46 @@ class Categorizer(object):
         prepared = prepare_image(io.imread(image_path)).ravel()
 
         # Get the most probable prediction.
-        prediction = classifier.predict(prepared)
+        prediction = self.classifier.predict(prepared)
 
         # Get percent values for all alternatives.
-        prediction_percent = classifier.predict_proba(prepared)
+        prediction_percent = self.classifier.predict_proba(prepared)
 
         print(prediction, prediction_percent)
 
         return {
             'path': image_path,
-            'text': round(prediction_percent[0][0], 3) * 100,
-            'image': round(prediction_percent[0][1], 3) * 100,
-            'blank': round(prediction_percent[0][2], 3) * 100,
+            'verdict': prediction[0],
+            'percent': {
+                'text': round(prediction_percent[0][self.TEXT], 3) * 100,
+                'image': round(prediction_percent[0][self.IMAGE], 3) * 100,
+                'blank': round(prediction_percent[0][self.BLANK_PAGE], 3) * 100,
+            }
         }
 
-    def categorize(self, image_path):
 
-        results = self.categorize_image(self.classifier, image_path)
-        if results['image'] >= 5:
-            image = io.imread(image_path)
-            fig, ax = plt.subplots(1)
-            ax.axis('off')
-            ax.imshow(image)
-    
-            text = "Wydaje mi się, że to jest... \n Tekst: %s%%,\n Obraz: %s%%,\n Pusta strona: %s%%" % \
-                   (results['text'], results['image'], results['blank'])
-    
-            w, h = image.shape[1], image.shape[0]
-    
-            ax.text(0, h*0.2, text, bbox={'facecolor':'green', 'alpha':0.5, 'pad':10})
-    
-            rect = patches.Rectangle(
-                (w*0.1, h*0.1),
-                w*0.8, h*0.8,
-                linewidth=1,
-                edgecolor='g',
-                facecolor='none'
-            )
-            ax.add_patch(rect)
-            fig.savefig('%s_mod.jpg' % image_path, bbox_inches='tight')
-            plt.close('all')
+    """
+    def draw_verdict(self):
+        image = io.imread(image_path)
+        fig, ax = plt.subplots(1)
+        ax.axis('off')
+        ax.imshow(image)
+
+        text = "Wydaje mi się, że to jest... \n Tekst: %s%%,\n Obraz: %s%%,\n Pusta strona: %s%%" % \
+               (results['text'], results['image'], results['blank'])
+
+        w, h = image.shape[1], image.shape[0]
+
+        ax.text(0, h*0.2, text, bbox={'facecolor':'green', 'alpha':0.5, 'pad':10})
+
+        rect = patches.Rectangle(
+            (w*0.1, h*0.1),
+            w*0.8, h*0.8,
+            linewidth=1,
+            edgecolor='g',
+            facecolor='none'
+        )
+        ax.add_patch(rect)
+        fig.savefig('%s_mod.jpg' % image_path, bbox_inches='tight')
+        plt.close('all')
+        """

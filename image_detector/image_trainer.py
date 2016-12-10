@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import glob
 import json
 import numpy
+from collections import OrderedDict
+from natsort import natsorted
 
-from skimage import io
 import matplotlib.pyplot as plt
 
-from prepare_image import load_images
-from prepare_image import display_image
+from .prepare_image import load_images
 
 
 def teach():
@@ -15,29 +16,32 @@ def teach():
     Manually choose which page is a text, image or blank sheet of paper.
     The result will be used later to train the classifier.
     """
-    path = './data/images/*.jpg'
+    path = './image_detector/data/images/*.jpg'
+    images_list = natsorted(glob.glob(path))
+    print(images_list[-1])
     images = load_images(path)
-    results = []
+    results = OrderedDict()
     i = 0
-    
+
     plt.ion()
     drawed = plt.imshow(numpy.zeros([300, 300]), cmap='Greys_r')
-    
-    for image in images:
+
+    for filename, image in zip(images_list, images):
         drawed.set_data(image)
         drawed.autoscale()
         plt.draw()
-        print("Showing... [%s]" % i)
+        print("Showing... [%s], %s" % (i, filename))
         inp = input("Text, graphic or empty? 0/1/2: \n")
         if not inp:
             inp = 0
         print(inp)
-        
-        results.append(int(inp))
+
+        results[filename] = int(inp)
         i += 1
-    print(results)
-    with open('./data/learned.json', 'w') as f:
-        json.dump(results, f)
+
+    print(results.values())
+    with open('./image_detector/data/learned.json', 'w') as f:
+        json.dump(results.values(), f)
     return results
 
 
