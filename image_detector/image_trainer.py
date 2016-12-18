@@ -8,7 +8,7 @@ from natsort import natsorted
 
 import matplotlib.pyplot as plt
 
-from .prepare_image import load_images
+from prepare_image import load_images
 
 
 def teach():

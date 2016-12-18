@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import os
-import shutil
-import random
 import zipfile
 
-import requests
 import urllib.request
 import urllib.parse
 from http.cookiejar import CookieJar
-from bs4 import BeautifulSoup
-import xml.etree.ElementTree as ET
 
 
 class Downloader(object):
@@ -26,14 +21,6 @@ class Downloader(object):
     def unzip(self):
         with zipfile.ZipFile(self.config['files']['zipfile'], 'r') as zip_file:
             zip_file.extractall(self.config['files']['zipdir'])
-
-    def get_filename(self):
-        """
-        In order to get the name of the file, we attempt to download it.
-        This name will used later to find the file in the zip bundle.
-        """
-        response = urllib.request.urlopen(self.config['default']['content_url'] + self.content_id)
-        return response.url.split('/')[-1]
 
     def get_file(self):
         """

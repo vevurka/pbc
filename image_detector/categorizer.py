@@ -4,8 +4,6 @@ import json
 import numpy
 from skimage import io
 import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 from sklearn.externals import joblib
 from sklearn.svm import SVC

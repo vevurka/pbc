@@ -9,7 +9,7 @@ import subprocess
 class Converter(object):
 
     """
-
+    Converts djvu to jpg.
     """
 
     def __init__(self, config):
