@@ -15,17 +15,13 @@ class LibraryCrawler(object):
     query starts is random.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, query):
         oai_api_url = config['default']['oai_api_url']
         self.sickle = Sickle(oai_api_url)
         self.resumption_token = self.get_token()
 
         # Queried attribute. I.e. type, description, format, subject, etc.
-        self.query_dict = {
-            'type': ['stary druk', 'fotografia', 'album', 'druk ulotny',
-                     'dokument ikonograficzny', 'dokument ikonograficzny' ],
-            #'format': ['image/x.djvu', 'image/jpeg', ]
-        }
+        self.query_dict = query
 
     def get_token(self):
         query = self.sickle.ListRecords(metadataPrefix='oai_dc',
