@@ -9,8 +9,10 @@ from image_manager import Downloader, cleanup
 from analyzer import ImageAnalyzer
 
 QUERY = {
-    'type': ['stary druk', 'fotografia', 'album', 'druk ulotny',
-             'dokument ikonograficzny', 'dokument ikonograficzny',]
+    'type': ['gazeta', 'stary druk', 'fotografia', 'fotografie', 'album', 'druk ulotny',
+             'dokument ikonograficzny', 'dokument ikonograficzny', 'inkunabuł',
+             'kalendarz', 'karta pocztowa', 'mapa', 'obraz', 'pocztówka', 'rękopis',
+             'rysunek', 'ulotka']
 }
 
 
@@ -41,7 +43,8 @@ def main(config, tries):
 
             twitter_poster = TwitterPoster(config)
             title = record.metadata['title'][0]
-            twitter_poster.put_media_to_timeline(media_file_path, title[:110] + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + content_id)
+            twitter_poster.put_media_to_timeline(media_file_path,
+                                                 title[:110] + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + content_id)
             cleanup(config)
 
     except Exception as e:
