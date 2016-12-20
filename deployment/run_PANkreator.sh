@@ -1,5 +1,5 @@
 #!/bin/bash
 
-source ~/PANkreator/panvenv/bin/activate
-cd ~/PANkreator/pbc/
+source $HOME/PANkreator/panvenv/bin/activate
+cd $HOME/PANkreator/pbc/
 python3 pga.py
