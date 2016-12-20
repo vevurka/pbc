@@ -8,6 +8,10 @@ from image_detector.categorizer import Categorizer
 
 class ImageAnalyzer(Categorizer):
 
+    """
+    Decide which image is worth publishing.
+    """
+
     def __init__(self, config):
         self.config = config
         Categorizer.__init__(self)

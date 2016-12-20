@@ -43,14 +43,14 @@ def main(config, tries):
 
             twitter_poster = TwitterPoster(config)
             title = record.metadata['title'][0]
-            twitter_poster.put_media_to_timeline(media_file_path,
-                                                 title[:110] + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + content_id)
-            cleanup(config)
+            #twitter_poster.put_media_to_timeline(media_file_path,
+            #                                     title[:110] + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + content_id)
+            #cleanup(config)
 
     except Exception as e:
         print("Caught exception: %s" % e)
         print("Trying again...")
-        cleanup(config)
+        #cleanup(config)
         tries -= 1
         if tries > 0:
             main(config, tries)

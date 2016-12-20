@@ -3,7 +3,6 @@
 import json
 import numpy
 from skimage import io
-import matplotlib
 
 from sklearn.externals import joblib
 from sklearn.svm import SVC
@@ -11,8 +10,6 @@ from sklearn.cross_validation import train_test_split
 from sklearn.cross_validation import KFold, cross_val_score
 
 from .prepare_image import load_images, prepare_image
-
-matplotlib.rc('font', family='DejaVu Sans')
 
 
 class Categorizer(object):
