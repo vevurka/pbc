@@ -16,7 +16,7 @@ class Converter(object):
         self.config = config
         self.glob_path = os.path.join(config['files']['zipdir'], '*.djvu')
 
-        self.djvu_bin = config['converter']['djvu_bin']
+        self.djvu_bin = config['converter']['ddjvu']
         self.error = None
 
     def iterate(self):
@@ -28,20 +28,16 @@ class Converter(object):
 
     def file_is_bundle(self, file):
         out = ''
-        try:
-            p = subprocess.Popen(["djvudump", file],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,)
+        with subprocess.Popen([self.config['converter']['djvudump'], file],
+                                 stdout=subprocess.PIPE) as p:
             out, err = p.communicate()
-        except subprocess.CalledProcessError:
-            return False
 
-        out = out.decode()
-        out = out[:100]
-        if "Document directory" in out:
-            self.pages = int(re.search("([0-9]+)\ pages", out).group(1))
-            print("I will be iterating over %s pages." % self.pages)
-            return True
+            out = out.decode()
+            out = out[:100]
+            if "Document directory" in out:
+                self.pages = int(re.search("([0-9]+)\ pages", out).group(1))
+                print("I will be iterating over %s pages." % self.pages)
+                return True
 
         return False
 
@@ -59,11 +55,8 @@ class Converter(object):
         print('Converting to pdf...')
         pdf_file_path = djvu_file_path.rstrip('djvu') + 'pdf'
         try:
-            subprocess.check_call([self.djvu_bin, "--format=pdf", "--page=%s" % page, djvu_file_path, pdf_file_path],
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE,)
-        except Exception as e:
-            print(e)
+            subprocess.check_call([self.djvu_bin, "--format=pdf", "--page=%s" % page, djvu_file_path, pdf_file_path])
+        except subprocess.CalledProcessError:
             self.error = "Failed to convert file to pdf!"
             print(self.error)
         return pdf_file_path
@@ -73,10 +66,8 @@ class Converter(object):
         jpg_file_path = pdf_tmpfile_path.rstrip('.pdf') + '_%s.jpg' % page
 
         try:
-            subprocess.check_call(["convert", pdf_tmpfile_path, jpg_file_path],
-                                  stdout=subprocess.PIPE)
-        except Exception as e:
-            print(e)
+            subprocess.check_call(["convert", pdf_tmpfile_path, jpg_file_path])
+        except subprocess.CalledProcessError:
             self.error = "Failed to convert file to jpg!"
             print(self.error)
         return jpg_file_path

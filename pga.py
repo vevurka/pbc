@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-
+import traceback
 import configparser
 
 from oai_api import LibraryCrawler
@@ -49,6 +49,7 @@ def main(config, tries):
 
     except Exception as e:
         print("Caught exception: %s" % e)
+        traceback.print_exc()
         print("Trying again...")
         cleanup(config)
         tries -= 1
