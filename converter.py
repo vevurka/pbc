@@ -21,7 +21,12 @@ class Converter(object):
 
     def iterate(self):
 
-        bundle_file = list(filter(self.file_is_bundle, glob.glob(self.glob_path)))[0]
+        bundle_file = None
+        for file in glob.glob(self.glob_path):
+            if self.file_is_bundle(file):
+                bundle_file = file
+                # Terminate the loop to save calls of costly djvudump.
+                break
 
         for page in range(0, self.pages):
             yield self.to_jpg(bundle_file, page)
