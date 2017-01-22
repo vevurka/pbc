@@ -15,7 +15,8 @@ class LibraryCrawler(object):
     query starts is random.
     """
 
-    def __init__(self, config, query):
+    def __init__(self, logger, config, query):
+        self.logger = logger
         oai_api_url = config['default']['oai_api_url']
         self.sickle = Sickle(oai_api_url)
         self.resumption_token = self.get_token()
@@ -24,15 +25,34 @@ class LibraryCrawler(object):
         self.query_dict = query
 
     def get_token(self):
-        query = self.sickle.ListRecords(metadataPrefix='oai_dc',
-                                        set='dLibraDigitalLibrar:PartnersResources:BGPAN')
+        query = self.sickle.ListRecords(
+            metadataPrefix='oai_dc',
+            set='dLibraDigitalLibrar:PartnersResources:BGPAN'
+        )
         return query.resumption_token
 
     def query_itarator(self):
         length = self.resumption_token.complete_list_size
         rand_num = randint(20, int(length))
-        new_token = re.sub('_DL_LAST_ITEM_\d+_DL_', '_DL_LAST_ITEM_%d_DL_' % rand_num, self.resumption_token.token)
+        new_token = re.sub(
+            '_DL_LAST_ITEM_\d+_DL_', '_DL_LAST_ITEM_%d_DL_' % rand_num,
+            self.resumption_token.token
+        )
         return self.sickle.ListRecords(resumptionToken=new_token)
+
+    @staticmethod
+    def is_small_enough(description):
+        try:
+            for item in description:
+                match = re.search(r"([0-9]+)\ss\.", item)
+                if match:
+                    pages = int(match.groups()[0])
+                    if pages > 250:
+                        return False
+
+        except IndexError:
+            pass
+        return True
 
     def run(self):
         found = False
@@ -42,11 +62,13 @@ class LibraryCrawler(object):
             for key, values in self.query_dict.items():
                 try:
                     attribute = record.metadata[key]
-                    if attribute[0] in values:
-                        print('Found something interesting!')
-                        print(record.metadata)
+                    description = record.metadata['description']
+                    if attribute[0] in values and self.is_small_enough(description):
+                        self.logger.info('Found something interesting!')
+                        self.logger.info(record.metadata)
                         found = True
-                        return record
+                        content_id = record.metadata['identifier'][1].lstrip('oai:pbc.gda.pl:')
+                        return record, content_id
                 except (KeyError, AttributeError):
                     pass
-        return None
+        return None, None

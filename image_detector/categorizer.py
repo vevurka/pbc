@@ -26,7 +26,8 @@ class Categorizer(object):
     Be cautious! Order of the images and targed data is relevant!
     """
 
-    def __init__(self, pre_trained=True):
+    def __init__(self, logger, pre_trained=True):
+        self.logger = logger
         if pre_trained:
             self.classifier = joblib.load('./image_detector/data/trained_classifier.pkl')
         else:
@@ -51,8 +52,8 @@ class Categorizer(object):
 
         classifier.fit(x_train, y_train)
 
-        print(scores)
-        print(classifier.score(x_train, y_train))
+        self.logger.info(scores)
+        self.logger.info(classifier.score(x_train, y_train))
 
         return classifier
 
@@ -66,7 +67,11 @@ class Categorizer(object):
         with open('./image_detector/data/new_learned.json', 'r') as f:
             results = json.load(f)
             classifier = self.train_classifier(images, results)
-            joblib.dump(classifier, './image_detector/data/trained_classifier.pkl', compress=9)
+            joblib.dump(
+                classifier,
+                './image_detector/data/trained_classifier.pkl',
+                compress=9
+            )
 
         return classifier
 
@@ -86,7 +91,7 @@ class Categorizer(object):
         # Get percent values for all alternatives.
         prediction_percent = self.classifier.predict_proba(prepared)
 
-        print(prediction, prediction_percent)
+        self.logger.info("%s %s" % (prediction, prediction_percent))
 
         return {
             'path': image_path,

@@ -1,63 +1,128 @@
 # -*- coding: utf-8 -*-
 
-import traceback
+from datetime import date
+from dateutil.relativedelta import relativedelta
 import configparser
+import logging
+import traceback
 
+from analyzer import ImageAnalyzer
+from downloader import Downloader
+from gif_downloader import GifDownloader
 from oai_api import LibraryCrawler
 from twitter_api import TwitterPoster
-from image_manager import Downloader, cleanup
-from analyzer import ImageAnalyzer
+from utils import db_connection, cleanup
 
 QUERY = {
-    'type': ['gazeta', 'stary druk', 'fotografia', 'fotografie', 'album', 'druk ulotny',
-             'dokument ikonograficzny', 'dokument ikonograficzny', 'inkunabuł',
-             'kalendarz', 'karta pocztowa', 'mapa', 'obraz', 'pocztówka', 'rękopis',
-             'rysunek', 'ulotka']
+    'type': [
+        'gazeta', 'stary druk', 'fotografia', 'fotografie', 'album',
+        'dokument ikonograficzny', 'dokument ikonograficzny', 'inkunabuł',
+        'kalendarz', 'karta pocztowa', 'mapa', 'obraz', 'pocztówka', 'rękopis',
+        'rysunek', 'ulotka', 'druk ulotny',
+    ]
 }
 
 
-def main(config, tries):
+class PANkreator(object):
 
-    try:
-        api = LibraryCrawler(config, QUERY)
-        record = api.run()
-        content_id = record.metadata['identifier'][1].lstrip('oai:pbc.gda.pl:')
+    """
+    Main body of the PANkreator bot.
+    """
 
+    def __init__(self):
+        self.config = configparser.ConfigParser()
+        self.config.read('config/config.conf')
+        logging.basicConfig(filename='pankreator_app.log',
+                            format='%(asctime)-15s %(message)s',
+                            level=logging.INFO)
+        self.logger = logging.getLogger('PANkreator')
+        self.logger.info('Starting...')
+
+    def get_gif(self):
+        gif_downloader = GifDownloader(self.logger, self.config)
+        media_file_path, title = gif_downloader.check_new_posts()
+        return media_file_path, title
+
+    def get_djvu(self, just_thumbnail=False):
+        record, content_id = LibraryCrawler(self.logger,
+                                            self.config,
+                                            QUERY).run()
         if record:
-            downloader = Downloader(content_id, config)
+            downloader = Downloader(self.logger, content_id, self.config)
             downloader.get_file()
             downloader.unzip()
 
-            analyzer = ImageAnalyzer(config)
-            media_file_path = analyzer.run()
+            if just_thumbnail:
+                media_file_path = downloader.get_thumbnail()
+            else:
+                analyzer = ImageAnalyzer(self.logger, self.config)
+                media_file_path = analyzer.run()
+
+            title = record.metadata['title'][0]
+            title = title[:110] + self.config['metadata_url'] + content_id
+            return media_file_path, title
+        return None, None
+
+    def choose_content(self):
+        """
+        This can be either
+        - gif from pankreator.org site
+        or
+        - djvu image from the PAN library.
+        """
+
+        with db_connection() as cursor:
+            cursor.execute('select * from pankreator_gifs order by id desc limit 1;')
+            last_record = cursor.fetchone()
+
+            # If gif wasn't added yesterday, add one.
+            if last_record[4] < date.today() - relativedelta(days=+1):
+                media_file_path, result = self.get_gif()
+                if media_file_path and result:
+                    query = 'insert into pankreator_gifs (title, url, gif_url, date_added)'\
+                            'values (?, ?, ?, ?)'
+                    cursor.execute(query, (result['title'], result['url'], result['gif_url'], date.today()))
+                    return media_file_path, result['title']
+
+            media_file_path, title = self.get_djvu()
+
+        return media_file_path, title
+
+    def main(self, tries):
+        dry_run = True
+
+        try:
+            media_file_path, title = self.choose_content()
 
             if not media_file_path:
                 tries -= 1
                 if tries > 0:
-                    print("Trying again...")
-                    main(config, tries)
+                    self.logger.warning("Trying again...")
+                    self.main(tries)
+
                 # Try to get the thumbnail.
-                media_file_path = downloader.get_thumbnail()
+                media_file_path, title = self.get_djvu(just_thumbnail=True)
 
-            print("The winner is... %s" % media_file_path)
+            self.logger.info("The winner is... %s" % media_file_path)
 
-            twitter_poster = TwitterPoster(config)
-            title = record.metadata['title'][0]
-            twitter_poster.put_media_to_timeline(media_file_path,
-                                                 title[:110] + ' http://pbc.gda.pl/dlibra/docmetadata?id=' + content_id)
-            cleanup(config)
+            if not dry_run:
+                twitter_poster = TwitterPoster(self.config)
+                twitter_poster.put_media_to_timeline(
+                    media_file_path,
+                    title
+                )
+                cleanup(self.config)
 
-    except Exception as e:
-        print("Caught exception: %s" % e)
-        traceback.print_exc()
-        print("Trying again...")
-        cleanup(config)
-        tries -= 1
-        if tries > 0:
-            main(config, tries)
+        except Exception as e:
+            self.logger.error("Caught exception: %s" % e)
+            traceback.print_exc()
+            self.logger.warning("Trying again...")
+            cleanup(self.config)
+            tries -= 1
+            if tries > 0:
+                self.main(tries)
 
 
-config = configparser.ConfigParser()
-config.read('config.conf')
-
-main(config, 3)
+if __name__ == '__main__':
+    pankreator = PANkreator()
+    pankreator.main(3)
