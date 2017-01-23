@@ -32,8 +32,8 @@ class Converter(object):
         for page in range(0, pages_num):
             yield self.to_jpg(bundle_file, page)
 
-    def file_is_bundle(self, file):
-        with open(file, 'rb') as descriptor:
+    def file_is_bundle(self, file_):
+        with open(file_, 'rb') as descriptor:
             output = descriptor.read(128)
             if b'DJVMDIRM' in output:
                 self.logger.info("Found bundle file.")

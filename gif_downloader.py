@@ -17,7 +17,6 @@ class GifDownloader(object):
     def __init__(self, logger, config):
         self.logger = logger
         self.config = config
-        self.base_url = 'http://pankreator.org/'
 
     def extract_data_from_page(self):
         """
@@ -25,7 +24,7 @@ class GifDownloader(object):
         #TODO: this should be replaced with API call when site supports it.
         """
         results = []
-        r = requests.get(self.base_url)
+        r = requests.get(self.config['default']['pankreator_site'])
         soup = BeautifulSoup(r.text, 'lxml')
         posts = [a for a in soup.findAll('div', attrs={'class': 'span2'})]
         for p in posts:
@@ -33,8 +32,10 @@ class GifDownloader(object):
             figcaption = p.find('figcaption', {'class': 'gify'})
             figure = p.find('div', {'class': 'item-image'})
             post['title'] = figcaption.a.getText().replace('\t', '').replace('\n', '')
-            post['gif_url'] = urljoin(self.config['default']['pankreator_site'], figure.a.img['src'])
-            post['url'] = urljoin(self.config['default']['pankreator_site'], figure.a['href'])
+            post['gif_url'] = urljoin(self.config['default']['pankreator_site'],
+                                      figure.a.img['src'])
+            post['url'] = urljoin(self.config['default']['pankreator_site'],
+                                  figure.a['href'])
             results.append(post)
         return results
 
@@ -47,6 +48,8 @@ class GifDownloader(object):
         Something that was found on the site, but wasn't added to the db yet.
         """
         results = self.extract_data_from_page()
+        if not results:
+            return None, None
         with db_connection() as cursor:
             for result in results:
                 cursor.execute('select * from pankreator_gifs where gif_url=?', (result['gif_url'], ))
