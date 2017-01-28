@@ -6,9 +6,9 @@ import sqlite3
 
 
 @contextmanager
-def db_connection():
+def db_connection(db_path):
     try:
-        connection = sqlite3.connect('config/database.db',
+        connection = sqlite3.connect(db_path,
                                      detect_types=sqlite3.PARSE_DECLTYPES)
         yield connection.cursor()
 

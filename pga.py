@@ -29,9 +29,12 @@ class PANkreator(object):
     Main body of the PANkreator bot.
     """
 
+    dry_run = True
+
     def __init__(self):
         self.config = configparser.ConfigParser()
         self.config.read('config/config.conf')
+        self.db = 'config/database.db'
         logging.basicConfig(filename='pankreator_app.log',
                             format='%(asctime)-15s %(message)s',
                             level=logging.INFO)
@@ -39,14 +42,11 @@ class PANkreator(object):
         self.logger.info('Starting...')
 
     def get_gif(self):
-        gif_downloader = GifDownloader(self.logger, self.config)
-        media_file_path, title = gif_downloader.check_new_posts()
-        return media_file_path, title
+        gif_downloader = GifDownloader(self.logger, self.config, self.db)
+        return gif_downloader.check_new_posts()
 
     def get_djvu(self, just_thumbnail=False):
-        record, content_id = LibraryCrawler(self.logger,
-                                            self.config,
-                                            QUERY).run()
+        record, content_id = LibraryCrawler(self.logger, self.config, QUERY).run()
         if record:
             downloader = Downloader(self.logger, content_id, self.config)
             downloader.get_file()
@@ -71,12 +71,13 @@ class PANkreator(object):
         - djvu image from the PAN library.
         """
 
-        with db_connection() as cursor:
+        with db_connection(self.db) as cursor:
             cursor.execute('select * from pankreator_gifs order by id desc limit 1;')
             last_record = cursor.fetchone()
 
             # If gif wasn't added yesterday, add one.
-            if last_record[4] < date.today() - relativedelta(days=+1):
+            yesterday = date.today() - relativedelta(days=+1)
+            if (not last_record) or (last_record[4] < yesterday):
                 media_file_path, result = self.get_gif()
                 if media_file_path and result:
                     query = 'insert into pankreator_gifs (title, url, gif_url, date_added)'\
@@ -89,7 +90,6 @@ class PANkreator(object):
         return media_file_path, title
 
     def main(self, tries):
-        dry_run = True
 
         try:
             media_file_path, title = self.choose_content()
@@ -105,7 +105,7 @@ class PANkreator(object):
 
             self.logger.info("The winner is... %s" % media_file_path)
 
-            if not dry_run:
+            if not self.dry_run:
                 twitter_poster = TwitterPoster(self.config)
                 twitter_poster.put_media_to_timeline(
                     media_file_path,

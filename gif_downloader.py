@@ -14,9 +14,10 @@ class GifDownloader(object):
     Downloads latest gif from the pankreator.org site.
     """
 
-    def __init__(self, logger, config):
+    def __init__(self, logger, config, db):
         self.logger = logger
         self.config = config
+        self.db = 'config/database.db'
 
     def extract_data_from_page(self):
         """
@@ -50,7 +51,7 @@ class GifDownloader(object):
         results = self.extract_data_from_page()
         if not results:
             return None, None
-        with db_connection() as cursor:
+        with db_connection(self.db) as cursor:
             for result in results:
                 cursor.execute('select * from pankreator_gifs where gif_url=?', (result['gif_url'], ))
                 db_result = cursor.fetchall()

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import logging
 import os
 import sqlite3
 import unittest
@@ -17,23 +16,23 @@ class MockedRequest(object):
 class TestGifDownloader(unittest.TestCase):
 
     def setUp(self):
-        connection = sqlite3.connect('config/test_db.db',
-                                     detect_types=sqlite3.PARSE_DECLTYPES)
-        cursor = connection.cursor()
+        self.connection = sqlite3.connect('tests/data/test_db.db',
+                                          detect_types=sqlite3.PARSE_DECLTYPES)
+        cursor = self.connection.cursor()
         with open('config/db_init.sql') as file:
             cursor.execute(file.read())
-        connection.commit()
-        connection.close()
 
     def tearDown(self):
-        os.remove('config/test_db.db')
+        self.connection.close()
+        os.remove('tests/data/test_db.db')
 
     @mock.patch('logging.Logger')
     def get_downloader(self, mock_logger):
         return GifDownloader(
             mock_logger,
             {'default': {'pankreator_site': 'http://pankreator.org'},
-             'files': {'gif_path': 'gif'}})
+             'files': {'gif_path': 'gif'}},
+            'tests/data/test_db.db')
 
     @mock.patch('requests.get')
     def test_extract_data_from_page(self, method):
@@ -63,7 +62,7 @@ class TestGifDownloader(unittest.TestCase):
     @mock.patch('sqlite3.connect')
     def test_check_new_posts_empty_html(self, connect):
         downloader = self.get_downloader()
-        connect.side_effect = sqlite3.connect('test/data/test_db.db')
+        connect.side_effect = sqlite3.connect('tests/data/test_db.db')
         result1, result2 = downloader.check_new_posts()
         self.assertEqual((result1, result2), (None, None))
 
@@ -74,14 +73,11 @@ class TestGifDownloader(unittest.TestCase):
         m_extract.return_value = [{'title': 'mocked', 'gif_url': 'http://mocked.com/gif.gif'}]
         m_download.return_value = 'gif'
         downloader = self.get_downloader()
-        connection = sqlite3.connect('config/test_db.db',
-                                     detect_types=sqlite3.PARSE_DECLTYPES)
-        cursor = connection.cursor()
+        cursor = self.connection.cursor()
         cursor.execute('insert into pankreator_gifs (id, gif_url) values (1, "http://mocked.com/gif.gif")')
-        connection.commit()
-        m_connect.return_value = connection.cursor()
+        self.connection.commit()
+        m_connect.return_value = self.connection
         result1, result2 = downloader.check_new_posts()
-        connection.close()
         self.assertEqual((result1, result2), (None, None))
 
     @mock.patch('gif_downloader.GifDownloader.download_image')
@@ -91,8 +87,7 @@ class TestGifDownloader(unittest.TestCase):
         m_extract.return_value = [{'title': 'mocked', 'gif_url': 'http://mocked.com/gif.gif'}]
         m_download.return_value = 'gif'
         downloader = self.get_downloader()
-        m_connect.return_value = sqlite3.connect('config/test_db.db',
-                                                 detect_types=sqlite3.PARSE_DECLTYPES)
+        m_connect.return_value = self.connection
         result1, result2 = downloader.check_new_posts()
         self.assertEqual(result1, 'gif')
         self.assertEqual(result2['gif_url'], 'http://mocked.com/gif.gif')
