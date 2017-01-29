@@ -34,6 +34,23 @@ class TestGifDownloader(unittest.TestCase):
              'files': {'gif_path': 'gif'}},
             'tests/data/test_db.db')
 
+    def test_compare_results_the_same(self):
+        downloader_cls = GifDownloader
+        diffs = downloader_cls.compare_results(
+            [(1, 'title', 'url', 'first gif', 'fake date'), (1, 'title', 'url', 'second gif', 'fake date')],
+            [{'attr': 'blabla', 'gif_url': 'first gif'}, {'attr': 'blabla', 'gif_url': 'second gif'}]
+        )
+        self.assertEqual(set(), diffs)
+
+    def test_compare_results_one_differs(self):
+        downloader_cls = GifDownloader
+        diffs = downloader_cls.compare_results(
+            [(1, 'title', 'url', 'first gif', 'fake date'), (1, 'title', 'url', 'second gif', 'fake date')],
+            [{'attr': 'blabla', 'gif_url': 'first gif'}, {'attr': 'blabla', 'gif_url': 'one that differs'}]
+        )
+        # Note that we always expect new item in the list from website.
+        self.assertEqual({'one that differs'}, diffs)
+
     @mock.patch('requests.get')
     def test_extract_data_from_page(self, method):
         with open('tests/data/pankreator.html') as html:
@@ -59,9 +76,13 @@ class TestGifDownloader(unittest.TestCase):
         result = downloader.extract_data_from_page()
         self.assertEqual([], result)
 
+    @mock.patch('requests.get')
     @mock.patch('sqlite3.connect')
-    def test_check_new_posts_empty_html(self, connect):
+    def test_check_new_posts_empty_html(self, connect, get):
         downloader = self.get_downloader()
+        m = MockedRequest()
+        m.text = ''
+        get.return_value = m
         connect.side_effect = sqlite3.connect('tests/data/test_db.db')
         result1, result2 = downloader.check_new_posts()
         self.assertEqual((None, None), (result1, result2))
@@ -75,6 +96,7 @@ class TestGifDownloader(unittest.TestCase):
         downloader = self.get_downloader()
         cursor = self.connection.cursor()
         cursor.execute('insert into pankreator_gifs (id, gif_url) values (1, "http://mocked.com/gif.gif")')
+        cursor.execute('insert into pankreator_gifs (id, gif_url) values (2, "http://mocked.com/gif2.gif")')
         self.connection.commit()
         m_connect.return_value = self.connection
         result1, result2 = downloader.check_new_posts()

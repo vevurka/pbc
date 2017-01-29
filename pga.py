@@ -59,7 +59,7 @@ class PANkreator(object):
                 media_file_path = analyzer.run()
 
             title = record.metadata['title'][0]
-            title = title[:110] + self.config['metadata_url'] + content_id
+            title = title[:110] + self.config['default']['metadata_url'] + content_id
             return media_file_path, title
         return None, None
 

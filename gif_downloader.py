@@ -44,6 +44,12 @@ class GifDownloader(object):
         urlretrieve(url, self.config['files']['gif_path'])
         return self.config['files']['gif_path']
 
+    @staticmethod
+    def compare_results(db_results, web_results):
+        web_gifs = [w['gif_url'] for w in web_results]
+        db_gifs = [d[3] for d in db_results if d]
+        return set(web_gifs) - set(db_gifs)
+
     def check_new_posts(self):
         """
         Something that was found on the site, but wasn't added to the db yet.
@@ -52,10 +58,14 @@ class GifDownloader(object):
         if not results:
             return None, None
         with db_connection(self.db) as cursor:
-            cursor.execute('select * from pankreator_gifs where gif_url in (%s)' % ', '.join('?' * len(results)),
-                           [r['gif_url'] for r in results])
-            db_result = cursor.fetchall()
-            if not db_result:
-                self.logger.info('Something new! %s' % results[0]['title'])
-                return self.download_image(results[0]['gif_url']), results[0]
+            cursor.execute('select * from pankreator_gifs order by id asc')
+
+            differences = self.compare_results(cursor.fetchall(), results)
+
+            if differences:
+                for item in results:
+                    if item['gif_url'] in differences:
+                        new_item = item
+                        self.logger.info('Something new! %s' % new_item['title'])
+                        return self.download_image(new_item['gif_url']), new_item
         return None, None
