@@ -12,9 +12,10 @@ class ImageAnalyzer(Categorizer):
     Decide which image is worth publishing.
     """
 
-    def __init__(self, config):
+    def __init__(self, logger, config):
+        self.logger = logger
         self.config = config
-        Categorizer.__init__(self)
+        Categorizer.__init__(self, logger)
 
     def get_best_result(self, results_dict):
         if results_dict:
@@ -24,8 +25,9 @@ class ImageAnalyzer(Categorizer):
 
     def get_preferred_key(self, percent_results):
         """
-        Since the classification from classifier.predict and classifier.predict_proba
-        differ, sometimes we want to get the prediction of the highest value.
+        Since the classification from classifier.predict and
+        classifier.predict_proba differ, sometimes we want
+        to get the prediction of the highest value.
         text / image / blank
 
         UNUSED NOW
@@ -34,12 +36,12 @@ class ImageAnalyzer(Categorizer):
 
     def run(self):
         results_dict = {}
-        converter = Converter(self.config)
+        converter = Converter(self.logger, self.config)
         i = 0
         for jpg_file_path in converter.iterate():
 
             results = self.categorize_image(jpg_file_path)
-            print(results['verdict'], jpg_file_path)
+            self.logger.info("%s, %s " % (results['verdict'], jpg_file_path))
             percent_results = results['percent']
             if results['percent']['image'] >= 30.0:
                 results_dict[jpg_file_path] = percent_results['image']

@@ -12,7 +12,8 @@ class Converter(object):
     Converts djvu to jpg.
     """
 
-    def __init__(self, config):
+    def __init__(self, logger, config):
+        self.logger = logger
         self.config = config
         self.glob_path = os.path.join(config['files']['zipdir'], '*.djvu')
 
@@ -20,31 +21,37 @@ class Converter(object):
         self.error = None
 
     def iterate(self):
-
         bundle_file = None
-        for file in glob.glob(self.glob_path):
-            if self.file_is_bundle(file):
-                bundle_file = file
-                # Terminate the loop to save calls of costly djvudump.
+        djvu_files = glob.glob(self.glob_path)
+        for djvu_file in djvu_files:
+            if self.file_is_bundle(djvu_file):
+                bundle_file = djvu_file
                 break
 
-        for page in range(0, self.pages):
+        pages_num = self.get_number_of_pages(bundle_file)
+        for page in range(0, pages_num):
             yield self.to_jpg(bundle_file, page)
 
-    def file_is_bundle(self, file):
-        out = ''
+    def file_is_bundle(self, file_):
+        with open(file_, 'rb') as descriptor:
+            output = descriptor.read(128)
+            if b'DJVMDIRM' in output:
+                self.logger.info("Found bundle file.")
+                return True
+
+        return False
+
+    def get_number_of_pages(self, file):
         with subprocess.Popen([self.config['converter']['djvudump'], file],
-                                 stdout=subprocess.PIPE) as p:
+                              stdout=subprocess.PIPE) as p:
             out, err = p.communicate()
 
             out = out.decode()
             out = out[:100]
             if "Document directory" in out:
-                self.pages = int(re.search("([0-9]+)\ pages", out).group(1))
-                print("I will be iterating over %s pages." % self.pages)
-                return True
+                return int(re.search("([0-9]+)\ pages", out).group(1))
 
-        return False
+        raise Exception("Failed to get number of pages!")
 
     def to_jpg(self, bundle_file, page):
 
@@ -57,22 +64,20 @@ class Converter(object):
         return None
 
     def djvu_to_pdf(self, djvu_file_path, page):
-        print('Converting to pdf...')
         pdf_file_path = djvu_file_path.rstrip('djvu') + 'pdf'
         try:
             subprocess.check_call([self.djvu_bin, "--format=pdf", "--page=%s" % page, djvu_file_path, pdf_file_path])
         except subprocess.CalledProcessError:
             self.error = "Failed to convert file to pdf!"
-            print(self.error)
+            self.logger.error(self.error)
         return pdf_file_path
 
     def pdf_to_jpg(self, pdf_tmpfile_path, page):
-        print("Converting to jpg...")
         jpg_file_path = pdf_tmpfile_path.rstrip('.pdf') + '_%s.jpg' % page
 
         try:
             subprocess.check_call(["convert", pdf_tmpfile_path, jpg_file_path])
         except subprocess.CalledProcessError:
             self.error = "Failed to convert file to jpg!"
-            print(self.error)
+            self.logger.error(self.error)
         return jpg_file_path
