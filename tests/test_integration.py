@@ -35,7 +35,7 @@ class TestGifDownloader(unittest.TestCase):
         pan.db = 'tests/data/test_db.db'
 
         media_file_path, title = pan.choose_content()
-        self.assertEqual(media_file_path, 'gif')
+        self.assertEqual('gif', media_file_path)
 
     @freeze_time('2017-02-01')
     @mock.patch('pga.PANkreator.get_gif')
@@ -49,7 +49,7 @@ class TestGifDownloader(unittest.TestCase):
         pan = self.get_pan()
         pan.db = 'tests/data/test_db.db'
         media_file_path, title = pan.choose_content()
-        self.assertEqual(media_file_path, 'gif')
+        self.assertEqual('gif', media_file_path)
 
     @freeze_time('2017-02-01')
     @mock.patch('pga.PANkreator.get_gif')
@@ -65,4 +65,4 @@ class TestGifDownloader(unittest.TestCase):
         pan = self.get_pan()
         pan.db = 'tests/data/test_db.db'
         media_file_path, title = pan.choose_content()
-        self.assertEqual(media_file_path, 'djvu')
+        self.assertEqual('djvu', media_file_path)

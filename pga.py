@@ -89,7 +89,7 @@ class PANkreator(object):
 
         return media_file_path, title
 
-    def main(self, tries):
+    def main(self, tries=0):
 
         try:
             media_file_path, title = self.choose_content()
@@ -98,7 +98,7 @@ class PANkreator(object):
                 tries -= 1
                 if tries > 0:
                     self.logger.warning("Trying again...")
-                    self.main(tries)
+                    self.main(tries=tries)
 
                 # Try to get the thumbnail.
                 media_file_path, title = self.get_djvu(just_thumbnail=True)
@@ -111,18 +111,18 @@ class PANkreator(object):
                     media_file_path,
                     title
                 )
-                cleanup(self.config)
+                cleanup(self.logger, self.config)
 
         except Exception as e:
             self.logger.error("Caught exception: %s" % e)
             traceback.print_exc()
             self.logger.warning("Trying again...")
-            cleanup(self.config)
+            cleanup(self.logger, self.config)
             tries -= 1
             if tries > 0:
-                self.main(tries)
+                self.main(tries=tries)
 
 
 if __name__ == '__main__':
     pankreator = PANkreator()
-    pankreator.main(3)
+    pankreator.main(tries=3)

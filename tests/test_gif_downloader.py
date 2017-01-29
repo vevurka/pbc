@@ -45,9 +45,9 @@ class TestGifDownloader(unittest.TestCase):
         gif_url = 'http://pankreator.org/images/16237258_10211877173311574_2136600893_n.gif'
         url = 'http://pankreator.org/index.php?option=com_content&view=article&id=46:wicia-na-kocie-jedzie&catid=8&Itemid=101'
         title = 'Wicia na kocie jedzie!'
-        self.assertEqual(result[0]['gif_url'], gif_url)
-        self.assertEqual(result[0]['url'], url)
-        self.assertEqual(result[0]['title'], title)
+        self.assertEqual(gif_url, result[0]['gif_url'])
+        self.assertEqual(url, result[0]['url'])
+        self.assertEqual(title, result[0]['title'])
 
     @mock.patch('requests.get')
     def test_extract_data_from_page_failed(self, method):
@@ -57,14 +57,14 @@ class TestGifDownloader(unittest.TestCase):
             method.return_value = m
         downloader = self.get_downloader()
         result = downloader.extract_data_from_page()
-        self.assertEqual(result, [])
+        self.assertEqual([], result)
 
     @mock.patch('sqlite3.connect')
     def test_check_new_posts_empty_html(self, connect):
         downloader = self.get_downloader()
         connect.side_effect = sqlite3.connect('tests/data/test_db.db')
         result1, result2 = downloader.check_new_posts()
-        self.assertEqual((result1, result2), (None, None))
+        self.assertEqual((None, None), (result1, result2))
 
     @mock.patch('gif_downloader.GifDownloader.download_image')
     @mock.patch('gif_downloader.GifDownloader.extract_data_from_page')
@@ -78,7 +78,7 @@ class TestGifDownloader(unittest.TestCase):
         self.connection.commit()
         m_connect.return_value = self.connection
         result1, result2 = downloader.check_new_posts()
-        self.assertEqual((result1, result2), (None, None))
+        self.assertEqual((None, None), (result1, result2))
 
     @mock.patch('gif_downloader.GifDownloader.download_image')
     @mock.patch('gif_downloader.GifDownloader.extract_data_from_page')
@@ -89,5 +89,5 @@ class TestGifDownloader(unittest.TestCase):
         downloader = self.get_downloader()
         m_connect.return_value = self.connection
         result1, result2 = downloader.check_new_posts()
-        self.assertEqual(result1, 'gif')
-        self.assertEqual(result2['gif_url'], 'http://mocked.com/gif.gif')
+        self.assertEqual('gif', result1)
+        self.assertEqual('http://mocked.com/gif.gif', result2['gif_url'])

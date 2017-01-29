@@ -22,7 +22,7 @@ class GifDownloader(object):
     def extract_data_from_page(self):
         """
         Parse the site html.
-        #TODO: this should be replaced with API call when site supports it.
+        # TODO: this should be replaced with API call when site supports it.
         """
         results = []
         r = requests.get(self.config['default']['pankreator_site'])
@@ -52,10 +52,10 @@ class GifDownloader(object):
         if not results:
             return None, None
         with db_connection(self.db) as cursor:
-            for result in results:
-                cursor.execute('select * from pankreator_gifs where gif_url=?', (result['gif_url'], ))
-                db_result = cursor.fetchall()
-                if not db_result:
-                    self.logger.info('Something new! %s' % result['title'])
-                    return self.download_image(result['gif_url']), result
+            cursor.execute('select * from pankreator_gifs where gif_url in (%s)' % ', '.join('?' * len(results)),
+                           [r['gif_url'] for r in results])
+            db_result = cursor.fetchall()
+            if not db_result:
+                self.logger.info('Something new! %s' % results[0]['title'])
+                return self.download_image(results[0]['gif_url']), results[0]
         return None, None

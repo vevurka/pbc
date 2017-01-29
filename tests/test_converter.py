@@ -21,16 +21,17 @@ class TestConverter(unittest.TestCase):
 
     def test_file_is_bundle(self):
         converter = self.get_converter()
-        self.assertEqual(converter.file_is_bundle('tests/data/regular.djvu'), False)
-        self.assertEqual(converter.file_is_bundle('tests/data/bundle.djvu'), True)
-        self.assertEqual(converter.file_is_bundle('tests/data/incorrect_file.djvu'), False)
+        self.assertEqual(False, converter.file_is_bundle('tests/data/regular.djvu'))
+        self.assertEqual(True, converter.file_is_bundle('tests/data/bundle.djvu'))
+        self.assertEqual(False, converter.file_is_bundle('tests/data/incorrect_file.djvu'))
 
     def test_get_number_of_pages(self):
         converter = self.get_converter()
         file_ = 'tests/data/bundle.djvu'
-        self.assertEqual(converter.get_number_of_pages(file_), 12)
+        self.assertEqual(12, converter.get_number_of_pages(file_))
 
-    def test_get_number_of_pages(self):
+    def test_get_number_of_pages_raises_exception_on_not_bundle(self):
+        # Should raise an exception on non bundle file.
         converter = self.get_converter()
         file_ = 'tests/data/regular.djvu'
         with self.assertRaises(Exception):

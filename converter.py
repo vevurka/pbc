@@ -23,9 +23,9 @@ class Converter(object):
     def iterate(self):
         bundle_file = None
         djvu_files = glob.glob(self.glob_path)
-        for file in djvu_files:
-            if self.file_is_bundle(file):
-                bundle_file = file
+        for djvu_file in djvu_files:
+            if self.file_is_bundle(djvu_file):
+                bundle_file = djvu_file
                 break
 
         pages_num = self.get_number_of_pages(bundle_file)

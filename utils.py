@@ -17,7 +17,7 @@ def db_connection(db_path):
         connection.close()
 
 
-def cleanup(config):
+def cleanup(logger, config):
 
     def del_files(directory):
         [os.remove(os.path.join(directory, f)) for f in os.listdir(directory)]
@@ -27,4 +27,4 @@ def cleanup(config):
         del_files(config['files']['zipdir'])
         del_files(config['files']['imagesdir'])
     except Exception as e:
-        print(e)
+        logger.error(e)

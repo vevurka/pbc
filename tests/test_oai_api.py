@@ -48,9 +48,10 @@ class TestConverter(unittest.TestCase):
         crawler = self.get_crawler()
         crawler.resumption_token = res
         l = list(crawler.query_itarator())
-        self.assertEqual(l, [1, 2, 3])
+        self.assertEqual([1, 2, 3], l)
 
     """
+    # TODO: simulate sickle iterator and complete this.
     @mock.patch('sickle.Sickle.ListRecords', return_value=iter([1, 2, 3]))
     @mock.patch('oai_api.LibraryCrawler.get_token', side_effect=lambda: 'aaa')
     @mock.patch('oai_api.LibraryCrawler.query_itarator', side_effect=Iterator)
@@ -61,10 +62,10 @@ class TestConverter(unittest.TestCase):
 
     def test_book_is_small_enough(self):
         lc = LibraryCrawler
-        self.assertEqual(lc.is_small_enough([]), True)
-        self.assertEqual(lc.is_small_enough(['[6] k.', '8°']), True)
-        self.assertEqual(lc.is_small_enough(['[8] k., 100 s.,']), True)
-        self.assertEqual(lc.is_small_enough(['[8] k., 730 s.,']), False)
+        self.assertEqual(True, lc.is_small_enough([]))
+        self.assertEqual(True, lc.is_small_enough(['[6] k.', '8°']))
+        self.assertEqual(True, lc.is_small_enough(['[8] k., 100 s.,']))
+        self.assertEqual(False, lc.is_small_enough(['[8] k., 730 s.,']))
 
 if __name__ == '__main__':
     unittest.main()
