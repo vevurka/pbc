@@ -83,7 +83,7 @@ class PANkreator(object):
                     query = 'insert into pankreator_gifs (title, url, gif_url, date_added)'\
                             'values (?, ?, ?, ?)'
                     cursor.execute(query, (result['title'], result['url'], result['gif_url'], date.today()))
-                    return media_file_path, result['title']
+                    return media_file_path, result['title'] + ' ' + result['url']
 
             media_file_path, title = self.get_djvu()
 
@@ -103,7 +103,7 @@ class PANkreator(object):
                 # Try to get the thumbnail.
                 media_file_path, title = self.get_djvu(just_thumbnail=True)
 
-            self.logger.info("The winner is... %s" % media_file_path)
+            self.logger.info("The winner is... %s, %s" % (media_file_path, title))
 
             if not self.dry_run:
                 twitter_poster = TwitterPoster(self.config)
