@@ -17,7 +17,7 @@ class GifDownloader(object):
     def __init__(self, logger, config, db):
         self.logger = logger
         self.config = config
-        self.db = 'config/database.db'
+        self.db = db
 
     def extract_data_from_page(self):
         """

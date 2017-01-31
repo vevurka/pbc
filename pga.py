@@ -29,7 +29,7 @@ class PANkreator(object):
     Main body of the PANkreator bot.
     """
 
-    dry_run = True
+    dry_run = False
 
     def __init__(self):
         self.config = configparser.ConfigParser()
@@ -59,7 +59,7 @@ class PANkreator(object):
                 media_file_path = analyzer.run()
 
             title = record.metadata['title'][0]
-            title = title[:110] + self.config['default']['metadata_url'] + content_id
+            title = '%s %s%s' % (title[:110], self.config['default']['metadata_url'], content_id)
             return media_file_path, title
         return None, None
 
@@ -83,7 +83,7 @@ class PANkreator(object):
                     query = 'insert into pankreator_gifs (title, url, gif_url, date_added)'\
                             'values (?, ?, ?, ?)'
                     cursor.execute(query, (result['title'], result['url'], result['gif_url'], date.today()))
-                    return media_file_path, result['title'] + ' ' + result['url']
+                    return media_file_path, '%s %s' % (result['title'],  result['url'])
 
             media_file_path, title = self.get_djvu()
 
