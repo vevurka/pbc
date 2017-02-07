@@ -23,8 +23,7 @@ class TestGifDownloader(unittest.TestCase):
         self.connection.close()
         os.remove('tests/data/test_db.db')
 
-    @mock.patch('logging.Logger')
-    def get_pan(self, mock_logger):
+    def get_pan(self):
         return PANkreator()
 
     @mock.patch('pga.PANkreator.get_gif')

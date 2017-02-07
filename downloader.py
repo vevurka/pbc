@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import zipfile
 
 import urllib.request
 import urllib.parse
 from http.cookiejar import CookieJar
+
+
+logger = logging.getLogger()
 
 
 class Downloader(object):
@@ -13,8 +17,7 @@ class Downloader(object):
     Authorize into the library, save the zip file and extract it.
     """
 
-    def __init__(self, logger, content_id, config):
-        self.logger = logger
+    def __init__(self, content_id, config):
         self.content_id = str(content_id)
         self.config = config
 
@@ -64,7 +67,7 @@ class Downloader(object):
         Last resort: just take the thumbnail.
         """
 
-        self.logger.info("Nothing worked, getting the thumbnail...")
+        logger.info("Nothing worked, getting the thumbnail...")
         url = "%s%s" % (self.config['default']['thumbnail_url'], self.content_id)
         urllib.request.urlretrieve(url, self.config['files']['jpg_path'])
         return self.config['files']['jpg_path']

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-#import matplotlib.pyplot as plt
 from skimage import io
 
 from skimage.color import rgb2gray
@@ -9,12 +8,6 @@ from skimage.transform import resize
 
 
 SIZE = (300, 300)
-
-
-#def display_image(image):
-#    plt.ion()
-#    plt.imshow(image, cmap='Greys_r')
-#    plt.draw()
 
 
 def prepare_image(image):

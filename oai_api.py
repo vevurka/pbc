@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import re
+import logging
 from random import randint
+import re
+import requests.exceptions
 from sickle import Sickle
+from utils import APIException
 
-# http://pbc.gda.pl/dlibra/doczip?id=24617
+
+logger = logging.getLogger()
 
 
 class LibraryCrawler(object):
@@ -15,8 +19,7 @@ class LibraryCrawler(object):
     query starts is random.
     """
 
-    def __init__(self, logger, config, query):
-        self.logger = logger
+    def __init__(self, config, query):
         oai_api_url = config['default']['oai_api_url']
         self.sickle = Sickle(oai_api_url)
         self.resumption_token = self.get_token()
@@ -25,10 +28,18 @@ class LibraryCrawler(object):
         self.query_dict = query
 
     def get_token(self):
-        query = self.sickle.ListRecords(
-            metadataPrefix='oai_dc',
-            set='dLibraDigitalLibrar:PartnersResources:BGPAN'
-        )
+        try:
+            query = self.sickle.ListRecords(
+                metadataPrefix='oai_dc',
+                set='dLibraDigitalLibrar:PartnersResources:BGPAN'
+            )
+        except requests.exceptions.HTTPError as ex:
+            message = "Couldn't connect to the library server! %s" % str(ex)
+            logger.error(message)
+
+            # Reraise the error to the main class.
+            raise APIException(message)
+
         return query.resumption_token
 
     def query_itarator(self):
@@ -64,8 +75,8 @@ class LibraryCrawler(object):
                     attribute = record.metadata[key]
                     description = record.metadata['description']
                     if attribute[0] in values and self.is_small_enough(description):
-                        self.logger.info('Found something interesting!')
-                        self.logger.info(record.metadata)
+                        logger.info('Found something interesting!')
+                        logger.info(record.metadata)
                         found = True
                         content_id = record.metadata['identifier'][1].lstrip('oai:pbc.gda.pl:')
                         return record, content_id

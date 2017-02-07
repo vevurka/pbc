@@ -15,4 +15,5 @@ class TwitterPoster(object):
         self.api = tweepy.API(auth)
 
     def put_media_to_timeline(self, img_path, status):
+        # TODO: handle API errors, for example file size exception.
         self.api.update_with_media(img_path, status)

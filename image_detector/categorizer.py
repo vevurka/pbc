@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import json
 import numpy
 from skimage import io
@@ -10,6 +11,9 @@ from sklearn.cross_validation import train_test_split
 from sklearn.cross_validation import KFold, cross_val_score
 
 from .prepare_image import load_images, prepare_image
+
+
+logger = logging.getLogger()
 
 
 class Categorizer(object):
@@ -26,8 +30,7 @@ class Categorizer(object):
     Be cautious! Order of the images and targed data is relevant!
     """
 
-    def __init__(self, logger, pre_trained=True):
-        self.logger = logger
+    def __init__(self, pre_trained=True):
         if pre_trained:
             self.classifier = joblib.load('./image_detector/data/trained_classifier.pkl')
         else:
@@ -52,8 +55,8 @@ class Categorizer(object):
 
         classifier.fit(x_train, y_train)
 
-        self.logger.info(scores)
-        self.logger.info(classifier.score(x_train, y_train))
+        logger.info(scores)
+        logger.info(classifier.score(x_train, y_train))
 
         return classifier
 
@@ -91,7 +94,7 @@ class Categorizer(object):
         # Get percent values for all alternatives.
         prediction_percent = self.classifier.predict_proba(prepared)
 
-        self.logger.info("%s %s" % (prediction, prediction_percent))
+        logger.info("%s %s" % (prediction, prediction_percent))
 
         return {
             'path': image_path,
@@ -102,30 +105,3 @@ class Categorizer(object):
                 'blank': round(prediction_percent[0][self.BLANK_PAGE], 3) * 100,
             }
         }
-
-
-    """
-    def draw_verdict(self):
-        image = io.imread(image_path)
-        fig, ax = plt.subplots(1)
-        ax.axis('off')
-        ax.imshow(image)
-
-        text = "Wydaje mi się, że to jest... \n Tekst: %s%%,\n Obraz: %s%%,\n Pusta strona: %s%%" % \
-               (results['text'], results['image'], results['blank'])
-
-        w, h = image.shape[1], image.shape[0]
-
-        ax.text(0, h*0.2, text, bbox={'facecolor':'green', 'alpha':0.5, 'pad':10})
-
-        rect = patches.Rectangle(
-            (w*0.1, h*0.1),
-            w*0.8, h*0.8,
-            linewidth=1,
-            edgecolor='g',
-            facecolor='none'
-        )
-        ax.add_patch(rect)
-        fig.savefig('%s_mod.jpg' % image_path, bbox_inches='tight')
-        plt.close('all')
-        """

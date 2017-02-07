@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import glob
+import logging
 import os
 import re
 import subprocess
+
+
+logger = logging.getLogger()
 
 
 class Converter(object):
@@ -12,8 +16,7 @@ class Converter(object):
     Converts djvu to jpg.
     """
 
-    def __init__(self, logger, config):
-        self.logger = logger
+    def __init__(self, config):
         self.config = config
         self.glob_path = os.path.join(config['files']['zipdir'], '*.djvu')
 
@@ -36,7 +39,7 @@ class Converter(object):
         with open(file_, 'rb') as descriptor:
             output = descriptor.read(128)
             if b'DJVMDIRM' in output:
-                self.logger.info("Found bundle file.")
+                logger.info("Found bundle file.")
                 return True
 
         return False
@@ -69,7 +72,7 @@ class Converter(object):
             subprocess.check_call([self.djvu_bin, "--format=pdf", "--page=%s" % page, djvu_file_path, pdf_file_path])
         except subprocess.CalledProcessError:
             self.error = "Failed to convert file to pdf!"
-            self.logger.error(self.error)
+            logger.error(self.error)
         return pdf_file_path
 
     def pdf_to_jpg(self, pdf_tmpfile_path, page):
@@ -79,5 +82,5 @@ class Converter(object):
             subprocess.check_call(["convert", pdf_tmpfile_path, jpg_file_path])
         except subprocess.CalledProcessError:
             self.error = "Failed to convert file to jpg!"
-            self.logger.error(self.error)
+            logger.error(self.error)
         return jpg_file_path

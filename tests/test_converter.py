@@ -1,19 +1,14 @@
 # -*- coding: utf-8 -*-
 
-
-import logging
 import unittest
-from unittest import mock
 
 from converter import Converter
 
 
 class TestConverter(unittest.TestCase):
 
-    @mock.patch('logging.Logger')
-    def get_converter(self, mock_logger):
+    def get_converter(self):
         return Converter(
-            mock_logger,
             {'files': {'zipdir': 'aaaa'},
              'converter': {'ddjvu': 'ddjvu',
                            'djvudump': 'djvudump'},
