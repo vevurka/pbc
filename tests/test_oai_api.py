@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import logging
+import requests.exceptions
 import unittest
 from unittest import mock
 from unittest.mock import Mock
 from sickle import Sickle
 
 from oai_api import LibraryCrawler
+from utils import APIException
+
 
 """
 class Iterator(object):
@@ -32,13 +34,18 @@ class Iterator(object):
 
 class TestConverter(unittest.TestCase):
 
-    @mock.patch('logging.Logger')
-    def get_crawler(self, mock_logger):
+    def get_crawler(self):
         return LibraryCrawler(
-            mock_logger,
             {'default': {'oai_api_url': 'fake'}},
             {'type': ['gazeta']}
         )
+
+    @mock.patch('sickle.Sickle.ListRecords')
+    def test_get_token_exception(self, m_list_records):
+        m_list_records.side_effect = requests.exceptions.HTTPError('500')
+
+        with self.assertRaises(APIException):
+            self.get_crawler()
 
     @mock.patch('sickle.Sickle.ListRecords', return_value=iter([1, 2, 3]))
     @mock.patch('oai_api.LibraryCrawler.get_token', side_effect=lambda: 'aaa')
@@ -52,6 +59,7 @@ class TestConverter(unittest.TestCase):
 
     """
     # TODO: simulate sickle iterator and complete this.
+
     @mock.patch('sickle.Sickle.ListRecords', return_value=iter([1, 2, 3]))
     @mock.patch('oai_api.LibraryCrawler.get_token', side_effect=lambda: 'aaa')
     @mock.patch('oai_api.LibraryCrawler.query_itarator', side_effect=Iterator)
@@ -66,6 +74,17 @@ class TestConverter(unittest.TestCase):
         self.assertEqual(True, lc.is_small_enough(['[6] k.', '8°']))
         self.assertEqual(True, lc.is_small_enough(['[8] k., 100 s.,']))
         self.assertEqual(False, lc.is_small_enough(['[8] k., 730 s.,']))
+
+    # TODO: more tests.
+    def test_run_ok(self):
+        pass
+
+    def test_run_key_error(self):
+        pass
+
+    def test_run_attr_error(self):
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()

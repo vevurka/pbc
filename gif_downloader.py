@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from bs4 import BeautifulSoup
 import requests
 from urllib.parse import urljoin
@@ -8,14 +9,16 @@ from urllib.request import urlretrieve
 from utils import db_connection
 
 
+logger = logging.getLogger()
+
+
 class GifDownloader(object):
 
     """
     Downloads latest gif from the pankreator.org site.
     """
 
-    def __init__(self, logger, config, db):
-        self.logger = logger
+    def __init__(self, config, db):
         self.config = config
         self.db = db
 
@@ -66,6 +69,6 @@ class GifDownloader(object):
                 for item in results:
                     if item['gif_url'] in differences:
                         new_item = item
-                        self.logger.info('Something new! %s' % new_item['title'])
+                        logger.info('Something new! %s' % new_item['title'])
                         return self.download_image(new_item['gif_url']), new_item
         return None, None

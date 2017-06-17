@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from datetime import date
-from dateutil.relativedelta import relativedelta
 import configparser
 import logging
 import traceback
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
 from analyzer import ImageAnalyzer
 from downloader import Downloader
 from gif_downloader import GifDownloader
 from oai_api import LibraryCrawler
 from twitter_api import TwitterPoster
-from utils import db_connection, cleanup
+from utils import db_connection, cleanup, initialize_logging, APIException
+
 
 QUERY = {
     'type': [
@@ -23,39 +24,39 @@ QUERY = {
 }
 
 
+initialize_logging()
+logger = logging.getLogger()
+
+
 class PANkreator(object):
 
     """
     Main body of the PANkreator bot.
     """
 
-    dry_run = False
+    dry_run = True
 
     def __init__(self):
         self.config = configparser.ConfigParser()
         self.config.read('config/config.conf')
-        self.db = 'config/database.db'
-        logging.basicConfig(filename='pankreator_app.log',
-                            format='%(asctime)-15s %(message)s',
-                            level=logging.INFO)
-        self.logger = logging.getLogger('PANkreator')
-        self.logger.info('Starting...')
+        self.db = self.config['default']['database']
+        logger.info('Starting...')
 
     def get_gif(self):
-        gif_downloader = GifDownloader(self.logger, self.config, self.db)
+        gif_downloader = GifDownloader(self.config, self.db)
         return gif_downloader.check_new_posts()
 
     def get_djvu(self, just_thumbnail=False):
-        record, content_id = LibraryCrawler(self.logger, self.config, QUERY).run()
+        record, content_id = LibraryCrawler(self.config, QUERY).run()
         if record:
-            downloader = Downloader(self.logger, content_id, self.config)
+            downloader = Downloader(content_id, self.config)
             downloader.get_file()
             downloader.unzip()
 
             if just_thumbnail:
                 media_file_path = downloader.get_thumbnail()
             else:
-                analyzer = ImageAnalyzer(self.logger, self.config)
+                analyzer = ImageAnalyzer(self.config)
                 media_file_path = analyzer.run()
 
             title = record.metadata['title'][0]
@@ -97,13 +98,13 @@ class PANkreator(object):
             if not media_file_path:
                 tries -= 1
                 if tries > 0:
-                    self.logger.warning("Trying again...")
+                    logger.warning("Trying again...")
                     self.main(tries=tries)
 
                 # Try to get the thumbnail.
                 media_file_path, title = self.get_djvu(just_thumbnail=True)
 
-            self.logger.info("The winner is... %s, %s" % (media_file_path, title))
+            logger.info("The winner is... %s, %s" % (media_file_path, title))
 
             if not self.dry_run:
                 twitter_poster = TwitterPoster(self.config)
@@ -111,13 +112,14 @@ class PANkreator(object):
                     media_file_path,
                     title
                 )
-                cleanup(self.logger, self.config)
+                cleanup(self.config)
 
-        except Exception as e:
-            self.logger.error("Caught exception: %s" % e)
-            traceback.print_exc()
-            self.logger.warning("Trying again...")
-            cleanup(self.logger, self.config)
+        except (Exception, APIException) as e:
+            # Catch any exception and try n times until you get a result.
+            tb = traceback.format_exc()
+            logger.error("Caught exception: %s \n %s" % (e, tb))
+            logger.warning("Trying again...")
+            cleanup(self.config)
             tries -= 1
             if tries > 0:
                 self.main(tries=tries)

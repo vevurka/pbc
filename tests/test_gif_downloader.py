@@ -26,10 +26,8 @@ class TestGifDownloader(unittest.TestCase):
         self.connection.close()
         os.remove('tests/data/test_db.db')
 
-    @mock.patch('logging.Logger')
-    def get_downloader(self, mock_logger):
+    def get_downloader(self):
         return GifDownloader(
-            mock_logger,
             {'default': {'pankreator_site': 'http://pankreator.org'},
              'files': {'gif_path': 'gif'}},
             'tests/data/test_db.db')

@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import os
 
 from converter import Converter
 from image_detector.categorizer import Categorizer
+
+
+logger = logging.getLogger()
 
 
 class ImageAnalyzer(Categorizer):
@@ -12,10 +16,9 @@ class ImageAnalyzer(Categorizer):
     Decide which image is worth publishing.
     """
 
-    def __init__(self, logger, config):
-        self.logger = logger
+    def __init__(self, config):
         self.config = config
-        Categorizer.__init__(self, logger)
+        Categorizer.__init__(self)
 
     def get_best_result(self, results_dict):
         if results_dict:
