@@ -64,3 +64,8 @@ def cleanup(config):
 class APIException(Exception):
 
     pass
+
+
+class ConverterException(Exception):
+
+    pass

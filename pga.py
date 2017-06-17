@@ -11,7 +11,9 @@ from downloader import Downloader
 from gif_downloader import GifDownloader
 from oai_api import LibraryCrawler
 from twitter_api import TwitterPoster
-from utils import db_connection, cleanup, initialize_logging, APIException
+from utils import (
+    db_connection, cleanup, initialize_logging, APIException, ConverterException
+)
 
 
 QUERY = {
@@ -114,7 +116,7 @@ class PANkreator(object):
                 )
                 cleanup(self.config)
 
-        except (Exception, APIException) as e:
+        except (Exception, APIException, ConverterException) as e:
             # Catch any exception and try n times until you get a result.
             tb = traceback.format_exc()
             logger.error("Caught exception: %s \n %s" % (e, tb))
