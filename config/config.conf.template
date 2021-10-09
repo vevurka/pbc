@@ -1,0 +1,31 @@
+[default]
+auth_url = http://pbc.gda.pl/dlibra/login?action=LoginAction
+oai_api_url = http://pbc.gda.pl/dlibra/oai-pmh-repository.xml
+content_url = http://pbc.gda.pl/Content/
+metadata_url = http://pbc.gda.pl/dlibra/docmetadata?id=
+thumbnail_url = http://pbc.gda.pl/image/edition/
+pankreator_site = http://pankreator.org/
+pbc_login =
+pbc_password =
+database = config/database.db
+
+[twitter]
+consumer_key =
+consumer_secret =
+owner = PAN_Kreator
+owner_id =
+access_token =
+access_token_secret =
+
+[files]
+image_path = ~/files/images/temp.djvu
+jpg_path = ~/files/images/new_image.jpg
+gif_path = ~/files/images/new_gif.gif
+pdf_tmpfile = ~/files/images/temp.pdf
+zipfile = ~/files/djvu.zip
+zipdir = ~/files/zip/
+imagesdir = ~/files/images/
+
+[converter]
+ddjvu = /usr/bin/ddjvu
+djvudump = /usr/bin/djvudump
